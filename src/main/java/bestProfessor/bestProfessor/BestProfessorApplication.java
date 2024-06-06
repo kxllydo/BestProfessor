@@ -8,6 +8,6 @@ public class BestProfessorApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(BestProfessorApplication.class, args);
+		System.out.println("hello");
 	}
-
 }
