@@ -10,4 +10,5 @@ public class BestProfessorApplication {
 		SpringApplication.run(BestProfessorApplication.class, args);
 		System.out.println("hello");
 	}
-}
+};
+
