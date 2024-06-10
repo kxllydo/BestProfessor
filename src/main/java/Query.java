@@ -1,31 +1,40 @@
 
 public class Query {
-    private String search;
     private String query;
+    private String url;
     
     public Query(String search){
-        this.search = search.toLowerCase();
-        this.query = null;
+        this.query = search.toLowerCase();
+        this.url = "https://www.ratemyprofessors.com/";
     }
 
-    public void searchToQuery(){
-        String[] splitSearch = search.split(" ");
+    private String convertSearchQuery(){
+        String[] splitSearch = query.split(" ");
         String last = "";
 
         for (int i = 0; i < splitSearch.length - 1; i++){
             last += splitSearch[i] + "%20";
         }
         last += splitSearch[splitSearch.length - 1];
-        query = "q=" + last;
+        return last;
     }
 
-    public void query(){
-        System.out.println(query);
+    public void search(boolean professor){
+        String converted = convertSearchQuery();
+        if (!professor){
+            url += "search/schools?q=" + converted;
+        }else{
+            url += "search/professors/15866?q=" + converted;
+        }
+    }
+
+    public void printUrl(){
+        System.out.println(url);
     }
 
 	public static void main(String[] args) {
-        Query hi = new Query("Drexel Univ");
-        hi.searchToQuery();
-        hi.query();
+        Query hi = new Query("Mark Body");
+        hi.search(true);
+        hi.printUrl();
     }
 }
