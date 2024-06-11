@@ -1,4 +1,4 @@
-package bestProfessor.bestProfessor;
+package com.kxllydo.bestProfessor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
