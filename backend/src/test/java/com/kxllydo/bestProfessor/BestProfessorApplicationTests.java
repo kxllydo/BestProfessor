@@ -1,4 +1,4 @@
-package com.kxllydo.bestProfessor;
+package com.kxllydo.bestprofessor;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
