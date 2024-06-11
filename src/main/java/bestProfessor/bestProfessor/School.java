@@ -6,6 +6,17 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.jsoup.nodes.Element;
 
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.time.Duration;
 
 public class School {
     private String name;
@@ -24,32 +35,34 @@ public class School {
         id = schoolId;
     }
 
-    public void schoolOptions(Query query){
+    public void schoolOptions(Query query, WebDriver driver, WebDriverWait wait){
         String url = query.url();
         System.out.println(url);
-        try{
-            Document doc = Jsoup.connect("https://www.ratemyprofessors.com/search/schools?q=drexel").get();
-            // Elements schools  = doc.select("div.SchoolCardHeader__StyledSchoolCardHeader-sc-1gq3qdv-0 bAQoPm");
-            String title = doc.title();
-            System.out.println(title);
-            // for (Element el : schools) {
-            //     System.out.print("HIHIHIHI");
-            //     String text = el.text();
-            //     System.out.println(text);
-            // }
-        }catch(IOException e) {
-            e.printStackTrace();
-            System.out.println("noo");
-        }
+        
+        // List<String> schools = new ArrayList<>();
+        // try{
+        //     driver.get(url);
+        //     wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(By.cssSelector(".SchoolCardHeader__StyledSchoolCardHeader-sc-1gq3qdv-0.bAQoPm")));
+        //     List<WebElement> elements = driver.findElements(By.cssSelector(".SchoolCardHeader__StyledSchoolCardHeader-sc-1gq3qdv-0.bAQoPm"));
+        //     for (WebElement element : elements) {
+        //         System.out.println(element.getText());
+        //         schools.add(element.getText());
+        //     }
+
+        //     driver.quit();
+
+        // }catch(IOException e) {
+        //     e.printStackTrace();
+        //     System.out.println("noo");
+        // }
     }
     // String element = "<div class=\"SchoolCardHeader__StyledSchoolCardHeader-sc-1gq3qdv-0 bAQoPm\">West Chester University of Pennsylvania</div>";
     
     public static void main(String[] args) {
-        Query q = new Query("drexel");
-        q.search(false);
-
-        School s = new School();
-        s.schoolOptions(q);
+        // System.setProperty("webdriver.chrome.driver", "C:\\Users\\do-kelly\\Downloads\\chromedriver.exe");
+        // WebDriver driver = new ChromeDriver();
+        // WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(100));
+        // Query q = new Query ("Drexel");
 
     }
 }
