@@ -1,3 +1,4 @@
+package bestProfessor.bestProfessor;
 
 public class Query {
     private String query;
@@ -30,6 +31,10 @@ public class Query {
 
     public void printUrl(){
         System.out.println(url);
+    }
+
+    public String url(){
+        return this.url;
     }
 
 	public static void main(String[] args) {
