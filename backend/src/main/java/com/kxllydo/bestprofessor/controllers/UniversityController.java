@@ -20,7 +20,7 @@ import java.util.List;
 public class UniversityController {
 
 
-    @GetMapping("/api/match-university/{university-name}")
+    @GetMapping("/api/university-options/{university-name}")
     public Query universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
         Document doc;
         List<String> response = new ArrayList<>();
