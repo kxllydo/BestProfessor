@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.beans.factory.annotation.Autowired;
 
-
-
 import java.io.IOException;
 
 import org.jsoup.*;
@@ -20,12 +18,7 @@ import java.util.List;
 
 @RestController
 public class UniversityController {
-    private final Query query;
 
-    @Autowired
-    public UniversityController (Query query){
-        this.query = query;
-    }
 
     @GetMapping("/api/match-university/{university-name}")
     public Query universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {

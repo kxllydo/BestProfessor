@@ -4,7 +4,6 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 
-@Component
 public class Query {
     private String query;
     private List<String> response;
@@ -14,7 +13,7 @@ public class Query {
         this.response = response;
     }
 
-    public void printUrl(){
+    public void printQuery(){
         System.out.println(query);
     }
 
@@ -24,7 +23,7 @@ public class Query {
         }
     }
 
-    public String getUrl(){
+    public String getQuery(){
         return query;
     }
 
