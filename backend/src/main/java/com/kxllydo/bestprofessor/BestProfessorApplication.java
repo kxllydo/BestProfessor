@@ -1,4 +1,4 @@
-package bestProfessor.bestProfessor;
+package com.kxllydo.bestprofessor;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -8,7 +8,6 @@ public class BestProfessorApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(BestProfessorApplication.class, args);
-		System.out.println("hello");
 	}
 };
 
