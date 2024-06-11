@@ -1,4 +1,4 @@
-package bestProfessor.bestProfessor;
+package com.kxllydo.bestprofessor.models;
 import java.io.IOException;
 
 import org.jsoup.Jsoup;
