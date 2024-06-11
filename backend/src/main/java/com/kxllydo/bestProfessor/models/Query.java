@@ -1,3 +1,5 @@
+package com.kxllydo.bestprofessor.models;
+
 
 public class Query {
     private String query;
