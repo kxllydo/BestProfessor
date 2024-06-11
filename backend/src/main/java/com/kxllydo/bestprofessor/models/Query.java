@@ -1,9 +1,4 @@
-<<<<<<<< HEAD:backend/src/main/java/com/kxllydo/bestprofessor/Query.java
-package bestProfessor.bestProfessor;
-========
 package com.kxllydo.bestprofessor.models;
-
->>>>>>>> 9cdb36e27cbef9b22dc8243008fff9584c0cc47a:backend/src/main/java/com/kxllydo/bestprofessor/models/Query.java
 
 public class Query {
     private String query;
