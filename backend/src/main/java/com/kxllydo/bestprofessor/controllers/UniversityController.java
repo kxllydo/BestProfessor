@@ -16,7 +16,6 @@ public class UniversityController {
     @GetMapping("/api/match-university/{university-name}")
     public String matchUniversity(@PathVariable(name = "university-name", required = true) String universityName) {
         Document doc;
-https://www.ratemyprofessors.com/search/schools?q=asdfae
         try {
             System.out.println("----------------------------------------------------------------------------------------------------------------");
             doc = Jsoup.connect("https://www.ratemyprofessors.com/search/schools?q=" + universityName.replaceAll(" ", "%20")).get();
