@@ -35,9 +35,9 @@ public class School {
         id = schoolId;
     }
 
-    public void schoolOptions(Query query, WebDriver driver, WebDriverWait wait){
-        String url = query.url();
-        System.out.println(url);
+    // public void schoolOptions(Query query, WebDriver driver, WebDriverWait wait){
+    //     String url = query.url();
+    //     System.out.println(url);
         
         // List<String> schools = new ArrayList<>();
         // try{
@@ -55,7 +55,7 @@ public class School {
         //     e.printStackTrace();
         //     System.out.println("noo");
         // }
-    }
+    // }
     // String element = "<div class=\"SchoolCardHeader__StyledSchoolCardHeader-sc-1gq3qdv-0 bAQoPm\">West Chester University of Pennsylvania</div>";
     
     public static void main(String[] args) {
