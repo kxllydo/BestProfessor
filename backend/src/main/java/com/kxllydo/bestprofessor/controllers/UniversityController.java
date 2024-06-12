@@ -22,6 +22,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.*;
 
 
 @RestController
@@ -56,5 +57,33 @@ public class UniversityController {
             driver.quit(); 
         }
         return options;
+    }
+
+    @GetMapping("/api")
+    public List<String> dropdown (){
+        ChromeOptions opt = new ChromeOptions();
+        // opt.addArguments("--headless=new");
+        WebDriver driver = new ChromeDriver();
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        List<String> departments = new ArrayList<>();
+
+        driver.get("https://www.ratemyprofessors.com/search/professors/1521?q=*");
+
+        WebElement popup = driver.findElement(By.cssSelector(".ReactModal__Overlay.ReactModal__Overlay--after-open.FullPageModal__StyledFullPageModal-sc-1tziext-1.fyxlwo__overlay"));
+        ((JavascriptExecutor) driver).executeScript("arguments[0].classList.remove('ReactModal__Overlay', 'ReactModal__Overlay--after-open', 'FullPageModal__StyledFullPageModal-sc-1tziext-1', 'fyxlwo__overlay')", popup);        
+
+        WebElement drop = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1l6bn5c-control")));
+        drop.click();
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1u8e7rt-menu")));
+        List<WebElement> depts = driver.findElements(By.cssSelector(".css-l0mlil-option"));
+
+        for (WebElement dep : depts){
+            String name = dep.getText();
+            departments.add(name);
+            System.out.println(name);
+        }
+
+        return departments;
     }
 }

@@ -46,10 +46,12 @@ public class ProfessorController {
                 response.add(professor);
             }
         } finally {
-            driver.quit(); // Ensure the WebDriver is properly closed
+            driver.quit(); 
         }
 
         return new Query(query, response);
     }
+
+    
     
 }

@@ -9,10 +9,10 @@ public class Professor {
     private List<String> tags;
 
 
-    public Professor (String fullName){
+    public Professor (String fullName, int id, int rating){
         this.fullName = fullName;
-        this.id = 0;
-        this.rating = 0;
+        this.id = id;
+        this.rating = rating;
     }
 
     public void setFullName(String name){
