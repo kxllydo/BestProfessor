@@ -19,7 +19,6 @@ import java.util.List;
 @RestController
 public class UniversityController {
 
-
     @GetMapping("/api/university-options/{university-name}")
     public Query universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
         Document doc;
@@ -36,7 +35,6 @@ public class UniversityController {
         } catch (IOException e) {
             throw new RuntimeException(e);
         } 
-
         return new Query(query, response);
     }
 }
