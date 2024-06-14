@@ -30,8 +30,9 @@ public class ProfessorController {
 
     @GetMapping("/api/professor-options/{professor-name}")
     public Query professorOptions(@PathVariable(name = "professor-name", required = true) String professorName) {
-        System.setProperty("webdriver.chrome.driver", "C:\\Users\\do-kelly\\Downloads\\chromedriver.exe");
-        WebDriver driver = new ChromeDriver();
+        ChromeOptions opt = new ChromeOptions();
+        opt.addArguments("--headless=new");
+        WebDriver driver = new ChromeDriver(opt);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
 
         List<String> response = new ArrayList<>();
