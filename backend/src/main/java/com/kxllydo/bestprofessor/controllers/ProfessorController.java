@@ -2,12 +2,15 @@ package com.kxllydo.bestprofessor.controllers;
 import com.kxllydo.bestprofessor.models.Professor;
 
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.util.JavaScriptUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.Duration; 
 import java.util.regex.Pattern;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -16,11 +19,51 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 @RestController
 public class ProfessorController {
+
+    public void clickDepartmentFilter(WebDriver driver, String department) {
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        JavascriptExecutor driverJs = (JavascriptExecutor) driver;  
+        Actions action = new Actions(driver);
+        
+        try {
+            WebElement popup = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".ReactModal__Overlay.ReactModal__Overlay--after-open.FullPageModal__StyledFullPageModal-sc-1tziext-1.fyxlwo__overlay")));
+
+            driverJs.executeScript("arguments[0].remove();", popup);
+        } catch (TimeoutException e) {
+            System.out.println("Popup not found.");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        WebElement dropdown = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1l6bn5c-control")));
+        action.scrollToElement(dropdown).click(dropdown).perform();
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1u8e7rt-menu")));
+        List<WebElement> departmentElements = driver.findElements(By.cssSelector(".css-l0mlil-option"));
+        List<String> departmentNames = departmentElements.stream().map(element -> element.getText().toLowerCase()).toList();
+        
+        int index = departmentNames.indexOf(department);
+        if (index < 0)
+            throw new RuntimeException("Could not find department.");
+        else {
+            WebElement departmentElement = departmentElements.get(index);
+            action.scrollToElement(departmentElement).click(departmentElement).perform();
+            // departmentElement.click();
+
+            try {
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1l6bn5c-control")));
+            } catch (TimeoutException e) {
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     /**
      * Repeatedly clicks on "Show More" of Professor Search Results page, if exists.
@@ -56,22 +99,27 @@ public class ProfessorController {
         }
     }
 
-    @GetMapping("/api/get-professors/{school-id}")
-    public ArrayList<Professor> getProfessors(@PathVariable(name = "school-id", required = true) int schoolId) {
+    @GetMapping("/api/professors")
+    public ArrayList<Professor> getProfessors(@RequestParam(name = "school", required = true) int schoolId, @RequestParam(name = "department", required = false) String department) {
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--headless=new");
 
-        WebDriver driver = new ChromeDriver(options);
-        driver.get("https://www.ratemyprofessors.com/search/professors/1521?q=*");
+        WebDriver driver = new ChromeDriver();
+        driver.get(String.format("https://www.ratemyprofessors.com/search/professors/%d?q=*", schoolId));
 
         try {
-            long startTime = System.nanoTime() / (long) 1e9;
+            if (department != null)
+                clickDepartmentFilter(driver, department);
+
+            // long startTime = System.nanoTime() / (long) 1e9;
             clickShowMore(driver);
-            long endTime = System.nanoTime() / (long) 1e9;
-            System.out.println(endTime - startTime);
+            // long endTime = System.nanoTime() / (long) 1e9;
+            // System.out.println(endTime - startTime);
         } catch (Exception e) {
+            System.out.println(e);
             driver.quit();
-            return null;
+            throw new RuntimeException(e);
+            // return null;
         }
 
         ArrayList<Professor> professors = new ArrayList<>();
@@ -93,6 +141,15 @@ public class ProfessorController {
 
         driver.quit();
         return professors;
+    }
+
+    @GetMapping("/api/test")
+    public String testing() {
+        WebDriver driver = new ChromeDriver();
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        driver.get("www.google.com");
+        js.executeScript("let a = arguments[0].getElementsByTagName('iframe'); for (let i = 0; i < a.length; i++) {a[i].remove();}", driver.findElement(By.id("root")));
+        return "asd";
     }
 
     // @GetMapping("/api/professor-options/{professor-name}")
