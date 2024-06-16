@@ -1,34 +1,21 @@
 package com.kxllydo.bestprofessor.models;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class Professor {
     private String fullName;
     private int id;
-    private int rating;
-    private List<String> tags;
+    private float rating;
+    private ArrayList<String> tags;
 
-
-    public Professor (String fullName, int id, int rating){
+    public Professor (String fullName, int id, float rating){
         this.fullName = fullName;
         this.id = id;
         this.rating = rating;
-    }
-
-    public void setFullName(String name){
-        fullName = name;
-    }
-
-    public void setId(int num){
-        id = num;
-    }
-
-    public void setRating(int rate){
-        rating = rate;
-    }
 
     public void setTags(List<String> tag){
-        tags = tag;
+        tags = (ArrayList<String>) tag;
     }
 
     public String getFullName(){
@@ -39,7 +26,7 @@ public class Professor {
         return id;
     }
 
-    public int getRating(){
+    public float getRating(){
         return rating;
     }
 
