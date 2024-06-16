@@ -13,9 +13,14 @@ public class Professor {
         this.fullName = fullName;
         this.id = id;
         this.rating = rating;
+    }
 
     public void setTags(List<String> tag){
         tags = (ArrayList<String>) tag;
+    }
+
+    public void addTag(String tag) {
+        tags.add(tag);
     }
 
     public String getFullName(){
@@ -30,9 +35,8 @@ public class Professor {
         return rating;
     }
 
-    public List<String> getTags(){
+    public ArrayList<String> getTags(){
         return tags;
     }
-
 }
 
