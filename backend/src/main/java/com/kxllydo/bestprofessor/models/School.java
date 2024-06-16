@@ -22,9 +22,9 @@ public class School {
     private String name;
     private int id;
 
-    public School (){
-        this.name = "";
-        this.id = 0;
+    public School (String name, int id){
+        this.name = name;
+        this.id = id;
     }
 
     public void setName (String schoolName){
@@ -33,6 +33,14 @@ public class School {
 
     public void setId (int schoolId){
         id = schoolId;
+    }
+
+    public String getName(){
+        return name;
+    }
+
+    public int getId(){
+        return id;
     }
 
     // public void schoolOptions(Query query, WebDriver driver, WebDriverWait wait){
