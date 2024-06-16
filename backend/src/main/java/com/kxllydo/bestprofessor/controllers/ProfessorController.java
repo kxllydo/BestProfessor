@@ -43,15 +43,17 @@ public class ProfessorController {
                   .perform();
             element.click();
         } catch (ElementClickInterceptedException e) {
-            try { Thread.sleep(1000); } catch (Exception e2) {}
+            try { Thread.sleep(250); } catch (Exception e2) {}
 
             List<WebElement> hoverElements = (List<WebElement>) driverJs.executeScript("return document.querySelectorAll(':hover');");
             WebElement hoverElement;
 
             if (hoverElements.size() > 0)
                 hoverElement = hoverElements.get(hoverElements.size() - 1);
-            else
+            else {
+                driver.quit();
                 throw new RuntimeException(e);
+            }
 
             driverJs.executeScript("arguments[0].remove();", hoverElement);
             attemptToClick(driver, element);
@@ -76,18 +78,15 @@ public class ProfessorController {
         attemptToClick(driver, dropdown);
 
         // Gathers all department names
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1u8e7rt-menu")));
-        List<WebElement> departmentElements = driver.findElements(By.cssSelector(".css-l0mlil-option"));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.css-1u8e7rt-menu")));
+        List<WebElement> departmentElements = driver.findElements(By.cssSelector("div.css-1u8e7rt-menu div div"));
         List<String> departmentNames = departmentElements.stream().map(element -> element.getText().toLowerCase()).toList();
         
         // Searches for department argument in list of department names & clicks
         int index = departmentNames.indexOf(department);
         if (index < 0) {
-            System.out.println("^".repeat(99));
-            System.out.println(department);
-            System.out.println("v");
-            for (String s: departmentNames) {System.out.println(s);}
-            throw new RuntimeException("Could not find department.");
+            driver.quit();
+            throw new RuntimeException("Could not find department: " + department + ".");
         } else {
             WebElement departmentElement = departmentElements.get(index);
             attemptToClick(driver, departmentElement);
@@ -117,7 +116,6 @@ public class ProfessorController {
         try {
             button = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("button.Buttons__Button-sc-19xdot-1")));
         } catch (TimeoutException e) {
-            System.out.println("Show More button could not be found.");
             return;
         }
         
@@ -129,6 +127,7 @@ public class ProfessorController {
                 driverJs.executeScript("arguments[0].click();", button);
             }
         } catch (TimeoutException e) {
+            return;
         } catch (Exception e) {
             driver.quit();
             throw new RuntimeException(e);
@@ -145,8 +144,10 @@ public class ProfessorController {
         driver.get(String.format("https://www.ratemyprofessors.com/search/professors/%d?q=*", schoolId));
 
         try {
-            if (department != null)
+            if (department != null) {
+                department = department.toLowerCase();
                 clickDepartmentFilter(driver, department);
+            }
             clickShowMore(driver);
         } catch (Exception e) {
             driver.quit();
