@@ -168,10 +168,37 @@ public class ProfessorController {
             int professorId = Integer.parseInt(professorNode.getAttribute("href").split("professor/")[1].split("/")[0]);
             
             Professor professor = new Professor(professorName, professorId, professorRating);
+            List<String> tags = getTags(driver, professorId);
+            professor.setTags(tags);
             professors.add(professor);
         }
 
         driver.quit();
         return professors;
+    }
+
+    /**
+     * Helper function that extracts the tags from a professor using the professor id and link. If no tags are included on the page, it specifies that there are no notes
+     * @param driver is the given driver
+     * @param id is the professor id
+     * @return list of the tags
+     */
+    public List<String> getTags (WebDriver driver, int id){
+        driver.get(String.format("https://www.ratemyprofessors.com/professor/%d", id));
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        List<String> tags = new ArrayList<>();
+
+        try {
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.TeacherTags__TagsContainer-sc-16vmh1y-0.dbxJaW")));
+
+            for (WebElement element : driver.findElements(By.cssSelector("span.Tag-bs9vf4-0.hHOVKF"))){
+                String tag = element.getText();
+                tags.add(tag);
+            }
+        }catch (Exception e){
+            tags.add("No notes");
+            return tags;
+        }
+        return tags;
     }
 }

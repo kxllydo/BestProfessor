@@ -62,7 +62,7 @@ public class UniversityController {
     @GetMapping("/api")
     public List<String> dropdown (){
         ChromeOptions opt = new ChromeOptions();
-        // opt.addArguments("--headless=new");
+        opt.addArguments("--headless=new");
         WebDriver driver = new ChromeDriver();
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
         List<String> departments = new ArrayList<>();
