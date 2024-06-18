@@ -14,6 +14,9 @@ import org.jsoup.select.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+
 
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.By;
@@ -24,12 +27,17 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.*;
 
+import org.springframework.web.bind.annotation.CrossOrigin;
+
+
 
 @RestController
+@CrossOrigin(origins = "*") // Allow all origins for this controller
+
 public class UniversityController {
 
     @GetMapping("/api/university-options/{university-name}")
-    public List<School> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
+    public Map<String, List<School>> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
         ChromeOptions opt = new ChromeOptions();
         opt.addArguments("--headless=new");
         WebDriver driver = new ChromeDriver(opt);
@@ -56,7 +64,11 @@ public class UniversityController {
         } finally {
             driver.quit(); 
         }
-        return options;
+
+        Map<String, List<School>> universities = new HashMap<>();
+        universities.put("options", options);
+
+        return universities;
     }
 
     @GetMapping("/api")
