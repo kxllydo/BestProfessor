@@ -1,0 +1,67 @@
+.bubble{
+    background-color: #d3ecff;
+    border-radius: 20px;
+    padding: 3px 10px 3px 12px;
+    display:flex;
+    flex-direction: row;
+    align-items: center;
+    color:#4997fd;
+    font-weight: 500;
+  }
+  
+  #courses{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+    margin: 2.5% 25% 0 25%;
+    flex-wrap: wrap;
+    /* border: solid 1px rgb(197, 197, 197);  */
+    gap: 11px;
+  }
+  
+  .remove-btn{
+    border:none;
+    background-color: inherit;
+    margin-left: 7px;
+    margin-top: 1px;
+    cursor: pointer;
+    color: inherit;
+  }
+  
+  
+  .general-container{
+    margin: 0 10% 0 10%;
+    box-shadow: 0px 1px 1px 1px  rgb(227, 227, 227);
+    padding-bottom: 2%;
+  }
+  
+  #f{
+    display:flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 50px;
+  }
+  
+  .bubble:hover{
+    background-color: #4997fd;
+    border: solid #9cd2fd;
+    color: white;
+  }
+  
+  .text-input{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;  
+    gap: 15px;
+  }
+  
+  #add-btn{
+    border: none;
+    color: white;
+    background-color: #4997fd;
+    border-radius: 30px;
+    padding: 3px 10px 3px 10px;
+    cursor: pointer;
+    font-weight: 300;
+    font-size: 20px;
+  }
