@@ -59,7 +59,7 @@ const SelectUniversity = ({handleUniversity}) => {
         }
 
         console.log(univ);
-        const response = await fetch (`http://localhost:8080/api/university-options/${univ}`,
+        const response = await fetch (`api/university-options/${univ}`,
             {
                 method: "GET",
             }
@@ -113,6 +113,8 @@ const SelectUniversity = ({handleUniversity}) => {
 }
 
 const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
+    const [depts, setDepts] = useState([]);
+
     const setCourse = (event) => {
         event.preventDefault();
         set(event);
@@ -123,20 +125,45 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
         add();
     }
 
+    const getDepts = async() => {
+        const response = await fetch (`api/departments/${id}`, 
+            {
+                method: "GET",
+            }
+        );
+        const data = await response.json();
+        setDepts(data);
+    }
+
+    const getCourses = async() => {
+        const response = await fetch (`api`)
+    }
+
+
+    useEffect(() => {
+        // Update the document title using the browser API
+        getDepts()
+      }, []);
+
+
     return (
 <       div className = "general-container">
             <h1>Select Your Courses</h1>
             <div className = "text-input">
             <select id = "dept1" name = "depts">
                 <option value="" disabled>Department</option>
-                <option value ="math">math</option>
+                {depts.map((dept, index) => (
+                    <option value ={dept}>{dept}</option>
+                    ))
+                }
             </select>
 
             <select id = "course1" name = "courses"  value = {select} onChange={setCourse}>
                 <option value="" disabled>Course</option>
-                <option value ="CS250">CS250</option>
-                <option value ="CS270">me</option>
-                <option value ="CS290">bruh</option>
+                {depts.map((dept, index) => (
+                    <option value ={dept}>{dept}</option>
+                    ))
+                }
             </select>
 
             <button id ="add-btn" onClick={addCourse}>+</button>

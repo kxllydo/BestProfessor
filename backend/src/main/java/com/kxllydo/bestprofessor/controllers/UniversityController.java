@@ -14,6 +14,8 @@ import org.jsoup.select.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 
 
@@ -31,7 +33,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000/") // Allow all origins for this controller
+@CrossOrigin(origins = "http://localhost:3000/")
 
 public class UniversityController {
 
@@ -48,7 +50,7 @@ public class UniversityController {
     }
 
     @GetMapping("/api/university-options/{university-name}")
-    public List<School> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
+    public Map<String, List<School>> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
         WebDriver driver = driver(false);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 
@@ -79,65 +81,6 @@ public class UniversityController {
 
         return universities;
     }
-
-    @GetMapping("/api")
-    public List<String> getDepartments (){
-        WebDriver driver = driver(false);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-        List<String> departments = new ArrayList<>();
-
-        driver.get("https://www.ratemyprofessors.com/search/professors/1521?q=*");
-
-        WebElement popup = driver.findElement(By.cssSelector(".ReactModal__Overlay.ReactModal__Overlay--after-open.FullPageModal__StyledFullPageModal-sc-1tziext-1.fyxlwo__overlay"));
-        ((JavascriptExecutor) driver).executeScript("arguments[0].classList.remove('ReactModal__Overlay', 'ReactModal__Overlay--after-open', 'FullPageModal__StyledFullPageModal-sc-1tziext-1', 'fyxlwo__overlay')", popup);        
-
-        WebElement drop = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1l6bn5c-control")));
-        drop.click();
-
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector(".css-1u8e7rt-menu")));
-        List<WebElement> depts = driver.findElements(By.cssSelector(".css-l0mlil-option"));
-
-        for (WebElement dep : depts){
-            String name = dep.getText();
-            departments.add(name);
-            System.out.println(name);
-        }
-
-        return departments;
-    }
-
-    @GetMapping ("/api/courses")
-    public List<String> getCourses (List<Integer> ids){
-        // List<Integer> ids = new ArrayList<>();
-        // ids.add(653239);
-        // ids.add(686052);
-
-
-        WebDriver driver = driver(false);
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
-        List<String> omg = new ArrayList<>();
-
-        for (int id : ids){
-            driver.get(String.format("https://www.ratemyprofessors.com/professor/%d", id));
-            WebElement drop = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.css-15snuh2-control")));
-            drop.click();
-
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.css-d0tfi8-menu")));
-
-            for (WebElement course: driver.findElements(By.cssSelector("div.css-1qsby6g-option"))){
-                String name = course.getText();
-                name = name.replaceAll("\\s*\\(.*$", "");
-                
-                if (!omg.contains(name)){
-                    omg.add(name);
-                    System.out.println(name);
-                }
-            }
-        }
-
-        return omg;
-    }
-
 
 }
 
