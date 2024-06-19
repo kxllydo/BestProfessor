@@ -1,11 +1,12 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import "../styles/Form.css"
 
 const Form = () => {
     const [select, setSelect] = useState("");
     const [courses, setCourses] = useState([]);
     const [choseUniv, setChoseUniv] = useState(false);
-    const [univ, setUniv] = useState("");
+    const [univ, setUniv] = useState({});
+    const [univId, setUnivId] = useState("");
 
     const setCourse = (event) => {
         setSelect(event.target.value);
@@ -22,49 +23,96 @@ const Form = () => {
         setCourses(updatedCourses);
     }
 
-    const getUniversities = async (event) => {
-        event.preventDefault();
-        console.log(univ);
-        const response = await fetch (`http://localhost:8080/api/university-options/drexel`,
-            {
-                method: "GET",
-            }
-        );
-
-        const data = await response.json();
-        console.log(data);
-    }
-
-    const setUniversity = (event) => {
-        event.preventDefault();
-        setUniv(event.target.value);
+    const setUniversity = ({chosen}) => {
+        setUniv({chosen});
+        setChoseUniv(true);
+        setUnivId(chosen.id);
     }
 
     return (
         <div id="form-container">
-        <form id = "university">
-            <div className="general-container">
-                <h1>Select University</h1>
-
-                <div className = "text-input">
-                    <label htmlFor = "school">University Name:</label>
-                    <input type = "text" style={{borderRadius: "10px", border: "solid 1px"}} onChange={setUniversity}></input>
-                    <button type="submit" onClick={getUniversities}>Submit</button>
-                </div>
-            </div>
-        
-            </form>
-
+            <SelectUniversity handleUniversity={setUniversity}/>
+            
             {choseUniv && (
-            <SelectCourse courses = {courses} add = {addCourse} deleteCourse={deleteCourse} set = {setCourse} select = {select}/>)
+            <SelectCourse courses = {courses} add = {addCourse} deleteCourse={deleteCourse} set = {setCourse} select = {select} id = {univId}/>)
             }
             
         </div>
     );
 }
 
-const SelectCourse = ({courses, add, deleteCourse, set, select}) => {
+const SelectUniversity = ({handleUniversity}) => {
+    const [univ, setUniv] = useState("");
+    const [nameOptions, setNameOptions] = useState([]);
+    const [options, setOptions] = useState([]);
+    
+    const setUniversity = (event) => {
+        event.preventDefault();
+        setUniv(event.target.value);
+    }
 
+    const getUniversities = async (event) => {
+        event.preventDefault();
+        const div = document.getElementById("univ-choices");
+        if (div.style.display == "none"){
+            div.style.display = "flex";
+        }
+
+        console.log(univ);
+        const response = await fetch (`http://localhost:8080/api/university-options/${univ}`,
+            {
+                method: "GET",
+            }
+        );
+        let choices = [];
+        const data = await response.json();
+        const opt = data.options;
+        setOptions(opt);
+
+        for (let i = 0; i < opt.length; i++){
+            choices.push(opt[i].name);
+        }
+        setNameOptions(choices);
+    }
+
+    const chooseUniversity = (event) => {
+        event.preventDefault();
+        const index = event.target.id;
+        const chosen = options[index];
+      
+        handleUniversity({chosen});
+        const div = document.getElementById("univ-choices");
+        div.style.display = "none";
+        const form = document.getElementById("select-university");
+        form.innerHTML = `University Name : ${chosen.name}`;
+
+        setNameOptions([]);
+    }
+
+    return (
+        <div className="general-container">
+            <h1>Select University</h1>
+            <div className = "text-input" id = "select-university">
+                <label htmlFor = "school">University Name:</label>
+                <input type = "text" style={{borderRadius: "10px", border: "solid 1px"}} onChange={setUniversity}></input>
+                <button type="submit" onClick={getUniversities}>Search</button>
+            </div>
+
+            <div className ="choices" style={{margin: "3% 0 0 0 "}} id = "univ-choices">
+                {
+                    nameOptions.map((option, index) => (
+                        <div className="text-input bubble" style={{gap: "2px", paddingLeft: "8px"}}>
+                        <input type ="radio" id = {index} value = {option} name = "univ-name" onClick={chooseUniversity}></input>
+                        <label htmlFor={option}>{option}</label>
+                        </div>
+                    ))
+                }
+            </div>
+        </div>
+    )
+}
+
+const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
     const setCourse = (event) => {
         event.preventDefault();
         set(event);
@@ -85,7 +133,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select}) => {
             </select>
 
             <select id = "course1" name = "courses"  value = {select} onChange={setCourse}>
-                <option value="" disabled selected>Course</option>
+                <option value="" disabled>Course</option>
                 <option value ="CS250">CS250</option>
                 <option value ="CS270">me</option>
                 <option value ="CS290">bruh</option>
@@ -95,7 +143,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select}) => {
 
             </div>
 
-            <div id = "courses">
+            <div className = "choices" style={{margin: "2.5% 25% 0 25%"}}>
             {courses.map((course, index) => (
                 <Course index = {index} name={course} deleteFunction={() => deleteCourse(index)} />
             ))}
