@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 
 @RestController
-@CrossOrigin(origins = "*") // Allow all origins for this controller
+@CrossOrigin(origins = "http://localhost:3000/") // Allow all origins for this controller
 
 public class UniversityController {
 
