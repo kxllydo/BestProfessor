@@ -201,4 +201,11 @@ public class ProfessorController {
         }
         return tags;
     }
+
+    // public Map<String, List<String>> getCourses(int id){
+    //     WebDriver driver = new ChromeDriver();
+    //     WebDriverWait wait = new WebDriverWait(driver);
+
+    //     driver.get(String.format("https://www.ratemyprofessors.com/professor/%d", id));
+    // }
 }

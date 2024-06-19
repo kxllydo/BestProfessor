@@ -14,8 +14,7 @@ import org.jsoup.select.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Set;
 
 
 import org.openqa.selenium.WebElement;
@@ -36,11 +35,21 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 
 public class UniversityController {
 
+    private WebDriver driver (boolean visible){
+        if (visible == false){
+            ChromeOptions opt = new ChromeOptions();
+            opt.addArguments("--headless=new");
+            WebDriver driver = new ChromeDriver(opt);
+            return driver;
+        }else{
+            WebDriver driver = new ChromeDriver();
+            return driver;
+        }
+    }
+
     @GetMapping("/api/university-options/{university-name}")
-    public Map<String, List<School>> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
-        ChromeOptions opt = new ChromeOptions();
-        opt.addArguments("--headless=new");
-        WebDriver driver = new ChromeDriver(opt);
+    public List<School> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
+        WebDriver driver = driver(false);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 
         String query = "https://www.ratemyprofessors.com/search/schools?q=" + universityName.replaceAll(" ", "%20");
@@ -72,10 +81,8 @@ public class UniversityController {
     }
 
     @GetMapping("/api")
-    public List<String> dropdown (){
-        ChromeOptions opt = new ChromeOptions();
-        opt.addArguments("--headless=new");
-        WebDriver driver = new ChromeDriver();
+    public List<String> getDepartments (){
+        WebDriver driver = driver(false);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
         List<String> departments = new ArrayList<>();
 
@@ -98,4 +105,58 @@ public class UniversityController {
 
         return departments;
     }
+
+    @GetMapping ("/api/courses")
+    public List<String> getCourses (List<Integer> ids){
+        // List<Integer> ids = new ArrayList<>();
+        // ids.add(653239);
+        // ids.add(686052);
+
+
+        WebDriver driver = driver(false);
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+        List<String> omg = new ArrayList<>();
+
+        for (int id : ids){
+            driver.get(String.format("https://www.ratemyprofessors.com/professor/%d", id));
+            WebElement drop = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.css-15snuh2-control")));
+            drop.click();
+
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.css-d0tfi8-menu")));
+
+            for (WebElement course: driver.findElements(By.cssSelector("div.css-1qsby6g-option"))){
+                String name = course.getText();
+                name = name.replaceAll("\\s*\\(.*$", "");
+                
+                if (!omg.contains(name)){
+                    omg.add(name);
+                    System.out.println(name);
+                }
+            }
+        }
+
+        return omg;
+    }
+
+
 }
+
+
+// document.querySelector('.css-2b097c-container').addEventListener('click', function() {
+//     // Use a timeout to wait for the dropdown to render (if necessary)
+//     setTimeout(function() {
+//         // Get the dropdown menu div
+//         const menuDiv = document.querySelector('.css-d0tfi8-menu');
+//         if (menuDiv) {
+//             // Get all child divs (the options) of the menu div
+//             const optionDivs = menuDiv.querySelectorAll('div');
+//             optionDivs.forEach((optionDiv, index) => {
+//                 console.log(`Option ${index + 1}:`, optionDiv);
+//                 console.log('Class list:', optionDiv.classList);
+//                 console.log('Inner text:', optionDiv.innerText);
+//             });
+//         } else {
+//             console.log('Dropdown menu not found.');
+//         }
+//     }, 100); // Adjust the timeout as needed based on how the menu renders
+// });
