@@ -12,6 +12,8 @@ import org.jsoup.nodes.*;
 import org.jsoup.select.*;
 
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.time.Duration;
 import java.util.Set;
@@ -48,7 +50,7 @@ public class UniversityController {
     }
 
     @GetMapping("/api/university-options/{university-name}")
-    public List<School> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
+    public Map<String, List<School>> universityOptions(@PathVariable(name = "university-name", required = true) String universityName) {
         WebDriver driver = driver(false);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(30));
 
