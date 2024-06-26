@@ -221,12 +221,12 @@ public class DepartmentController {
     }
 
     @GetMapping("/api/courses/{univ-id}/{dept}")
-    public List<String> getCourses(@PathVariable(name = "univ-id") int id, @PathVariable (name="dept") String dept){//Map<String, List<Professor>> getCourses(){
+    public List<String> getCourses(@PathVariable(name = "univ-id") int univId, @PathVariable (name="dept") String dept){//Map<String, List<Professor>> getCourses(){
         WebDriver driver = driver(false);
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
 
 
-        List<Professor> professors = getProfessors(id, dept );
+        List<Professor> professors = getProfessors(univId, dept);
         Map <String, Professor> courseAndProfs = new HashMap<>();
         List<String> courses = new ArrayList<>();
         List<Integer> ids = new ArrayList<>();
