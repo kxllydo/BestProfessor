@@ -233,8 +233,8 @@ public class DepartmentController {
 
     
         for (Professor p : professors){
-            int id = p.getId();
-            driver.get(String.format("https://www.ratemyprofessors.com/professor/%d", id));
+            int pid = p.getId();
+            driver.get(String.format("https://www.ratemyprofessors.com/professor/%d", pid));
             closeOpeningPopUp(driver);
 
             WebElement drop = wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.css-15snuh2-control")));    
