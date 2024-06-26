@@ -314,6 +314,7 @@ public class DepartmentController {
         }catch (Exception e){
             tags.add("No notes");
             System.out.println("error happened");
+            driver.quit();
             return tags;
         }
         driver.quit();
