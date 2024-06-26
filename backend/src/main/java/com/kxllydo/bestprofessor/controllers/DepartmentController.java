@@ -256,6 +256,7 @@ public class DepartmentController {
                 }
             }
         }
+        driver.quit();
         return courses;
     }
 
@@ -281,6 +282,8 @@ public class DepartmentController {
             departments.add(name);
             System.out.println(name);
         }
+
+        driver.quit();
 
         return departments;
     }
@@ -313,6 +316,7 @@ public class DepartmentController {
             System.out.println("error happened");
             return tags;
         }
+        driver.quit();
         return tags;
     }
 }

@@ -157,6 +157,11 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
         setChoseDept(true);
     }
 
+    useEffect(() => {
+        if (dept)
+            getCourses();
+    }, [dept])
+
 
     useEffect(() => {
         getDepts()
