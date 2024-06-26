@@ -12,10 +12,8 @@ const Form = () => {
         setSelect(event.target.value);
     };
 
-    const addCourse = () => {
-        if (select) {
-            setCourses([...courses, select]); //research
-        }
+    const addCourse = (course) => {
+        setCourses((prevCourses) => [...prevCourses, course]);
     };
 
     const deleteCourse = (index) =>{
@@ -117,21 +115,22 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState("");
     const [classes, setClasses] = useState([]);
+    const [course, setCours] = useState("");
     const [loaded, setLoaded] = useState(false);
 
     const setCourse = (event) => {
-        event.preventDefault();
-        set(event);
+        setCours(event.target.value);
+
     };
 
     const setDepartment = (event) => {
         setDept(event.target.value);
-        console.log(dept);
     }
 
     const addCourse = (event) => {
         event.preventDefault();
-        add();
+        console.log(course);
+        add(course);
     }
 
     const getDepts = async() => {
