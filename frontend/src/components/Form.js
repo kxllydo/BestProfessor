@@ -126,6 +126,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
 
     const setDepartment = (event) => {
         setDept(event.target.value);
+        console.log(dept);
     }
 
     const addCourse = (event) => {
