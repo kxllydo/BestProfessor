@@ -250,7 +250,7 @@ public class DepartmentController {
                 String name = course.getText();
                 name = name.replaceAll("\\s*\\(.*$", "");
                 
-                if (!courses.contains(name) && (name != "All courses")){
+                if ((name != "All courses") && !courses.contains(name)){
                     courses.add(name);
                     System.out.println(name);
                 }

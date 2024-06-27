@@ -27,6 +27,10 @@ const Form = () => {
         setUnivId(chosen.id);
     }
 
+    useEffect(() => {
+        console.log(courses);
+    }, [courses])
+
     return (
         <div id="form-container">
             <SelectUniversity handleUniversity={setUniversity}/>
@@ -38,6 +42,7 @@ const Form = () => {
         </div>
     );
 }
+
 
 const SelectUniversity = ({handleUniversity}) => {
     const [univ, setUniv] = useState("");
