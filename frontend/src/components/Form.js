@@ -12,10 +12,8 @@ const Form = () => {
         setSelect(event.target.value);
     };
 
-    const addCourse = () => {
-        if (select) {
-            setCourses([...courses, select]); //research
-        }
+    const addCourse = (course) => {
+        setCourses((prevCourses) => [...prevCourses, course]);
     };
 
     const deleteCourse = (index) =>{
@@ -59,7 +57,7 @@ const SelectUniversity = ({handleUniversity}) => {
         }
 
         console.log(univ);
-        const response = await fetch (`http://localhost:8080/api/university-options/${univ}`,
+        const response = await fetch (`api/university-options/${univ}`,
             {
                 method: "GET",
             }
@@ -113,44 +111,95 @@ const SelectUniversity = ({handleUniversity}) => {
 }
 
 const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
+    const [depts, setDepts] = useState([]);
+    const [choseDept, setChoseDept] = useState(false);
+    const [dept, setDept] = useState("");
+    const [classes, setClasses] = useState([]);
+    const [course, setCours] = useState("");
+    const [loaded, setLoaded] = useState(false);
+
     const setCourse = (event) => {
-        event.preventDefault();
-        set(event);
+        setCours(event.target.value);
+
     };
+
+    const setDepartment = (event) => {
+        setDept(event.target.value);
+    }
 
     const addCourse = (event) => {
         event.preventDefault();
-        add();
+        console.log(course);
+        add(course);
     }
 
-    return (
-<       div className = "general-container">
+    const getDepts = async() => {
+        const response = await fetch (`api/departments/${id}`, 
+            {
+                method: "GET",
+            }
+        );
+        const data = await response.json();
+        setDepts(data);
+        setLoaded(true)
+    }
+
+    const getCourses = async() => {
+        console.log(dept);
+        const response = await fetch (`/api/courses/${id}/${dept}`, 
+            {
+                method : "GET",
+            }
+        )
+
+        const data = await response.json();
+        setClasses(data);
+        setChoseDept(true);
+    }
+
+    useEffect(() => {
+        if (dept)
+            getCourses();
+    }, [dept])
+
+
+    useEffect(() => {
+        getDepts()
+      }, []);
+
+
+      return (
+        <div className="general-container">
             <h1>Select Your Courses</h1>
-            <div className = "text-input">
-            <select id = "dept1" name = "depts">
-                <option value="" disabled>Department</option>
-                <option value ="math">math</option>
-            </select>
-
-            <select id = "course1" name = "courses"  value = {select} onChange={setCourse}>
-                <option value="" disabled>Course</option>
-                <option value ="CS250">CS250</option>
-                <option value ="CS270">me</option>
-                <option value ="CS290">bruh</option>
-            </select>
-
-            <button id ="add-btn" onClick={addCourse}>+</button>
-
-            </div>
-
-            <div className = "choices" style={{margin: "2.5% 25% 0 25%"}}>
-            {courses.map((course, index) => (
-                <Course index = {index} name={course} deleteFunction={() => deleteCourse(index)} />
-            ))}
-            </div>
+            {loaded && (
+                <div>
+                    <div className="text-input">
+                        <select id="dept1" name="depts" onChange={setDepartment}>
+                            <option value="" disabled>Department</option>
+                            {depts.map((dept, index) => (
+                                <option key={index} value={dept}>{dept}</option>
+                            ))}
+                        </select>
+                        <select id="course1" name="courses" onChange={setCourse}>
+                            <option value="" disabled>Course</option>
+                            {classes.map((clas, index) => (
+                                <option key={index} value={clas}>{clas}</option>
+                            ))}
+                        </select>
+                        <button id="add-btn" onClick={addCourse}>+</button>
+                    </div>
+                    <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
+                        {courses.map((course, index) => (
+                            <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
-    )
-}
+    );
+};
+    
+
 const Course = ({index, name, deleteFunction}) => {
     const onDelete = (event) =>{
         event.preventDefault();

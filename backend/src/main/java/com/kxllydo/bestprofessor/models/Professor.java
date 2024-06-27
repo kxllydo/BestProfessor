@@ -7,7 +7,7 @@ public class Professor {
     private String fullName;
     private int id;
     private float rating;
-    private ArrayList<String> tags;
+    private List<String> tags;
 
     public Professor (String fullName, int id, float rating){
         this.fullName = fullName;
@@ -16,7 +16,11 @@ public class Professor {
     }
 
     public void setTags(List<String> tag){
-        tags = (ArrayList<String>) tag;
+        if (tag == null){
+            tags = new ArrayList<>();
+        }else{
+            tags = tag;
+        }
     }
 
     public void addTag(String tag) {
@@ -35,7 +39,7 @@ public class Professor {
         return rating;
     }
 
-    public ArrayList<String> getTags(){
+    public List<String> getTags(){
         return tags;
     }
 }
