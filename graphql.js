@@ -96,3 +96,4 @@ fetch(url, parameter("Basic dGVzdDp0ZXN0", payload))
     console.error('Error fetching data:', error);
     // Handle errors here
   });
+

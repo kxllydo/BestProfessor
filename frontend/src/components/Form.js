@@ -1,7 +1,12 @@
 import {useState, useEffect} from "react";
 import "../styles/Form.css"
 
-const parameter = (token, payload) => {
+const parameter = (token, query, variables) => {
+    const payload = {
+        query: query, 
+        variables: variables
+    };
+
     return {
         method: 'POST',
         headers: {
@@ -61,9 +66,10 @@ const Form = () => {
         <div id="form-container">
             <SelectUniversity handleUniversity={setUniversity}/>
             
-            {choseUniv && (
-            <SelectCourse courses = {courses} add = {addCourse} deleteCourse={deleteCourse} set = {setCourse} select = {select} id = {univId}/>)
-            }
+            {/* {choseUniv && ( */}
+            <SelectCourse courses = {courses} add = {addCourse} deleteCourse={deleteCourse} set = {setCourse} select = {select} id = {univId}/>
+            {/* )
+            } */}
             
         </div>
     );
@@ -72,7 +78,6 @@ const Form = () => {
 
 const SelectUniversity = ({handleUniversity}) => {
     const [univ, setUniv] = useState("");
-    const [nameOptions, setNameOptions] = useState([]);
     const [options, setOptions] = useState([]);
     ;
     const setUniversity = (event) => {
@@ -80,102 +85,30 @@ const SelectUniversity = ({handleUniversity}) => {
         setUniv(event.target.value);
     }
 
-    // const getUniversities = async (event) => {
-    //     event.preventDefault();
-    //     const div = document.getElementById("univ-choices");
-    //     if (div.style.display == "none"){
-    //         div.style.display = "flex";
-    //     }
-
-    //     console.log(univ);
-    //     const response = await fetch (`api/university-options/${univ}`,
-    //         {
-    //             method: "GET",
-    //         }
-    //     );
-    //     let choices = [];
-    //     const data = await response.json();
-    //     const opt = data.options;
-    //     setOptions(opt);
-
-    //     for (let i = 0; i < opt.length; i++){
-    //         choices.push(opt[i].name);
-    //     }
-    //     setNameOptions(choices);
-    // }
-
     const getUniversities = async(event) => {
         event.preventDefault();
         const div = document.getElementById("univ-choices");
         if (div.style.display == "none"){
             div.style.display = "flex";
-        }
+        };
 
-        const payload = {
-            query: `
-              query SchoolSearchResultsPageQuery(
-                $query: SchoolSearchQuery!
-              ) {
-                search: newSearch {
-                  ...SchoolSearchPagination_search_1ZLmLD
-                }
-              }
-          
-              fragment SchoolSearchPagination_search_1ZLmLD on newSearch {
-                schools(query: $query, first: 8, after: "") {
-                  edges {
-                    cursor
-                    node {
-                      name
-                      ...SchoolCard_school
-                      id
-                      __typename
-                    }
-                  }
-                  pageInfo {
-                    hasNextPage
-                    endCursor
-                  }
-                  resultCount
-                }
-              }
-          
-              fragment SchoolCard_school on School {
-                legacyId
-                name
-                numRatings
-                avgRating
-                avgRatingRounded
-                ...SchoolCardHeader_school
-                ...SchoolCardLocation_school
-              }
-          
-              fragment SchoolCardHeader_school on School {
-                name
-              }
-          
-              fragment SchoolCardLocation_school on School {
-                city
-                state
-              }
-            `,
-            variables: {
-              query: {
-                text: "drexel"
-              }
+        const query = "query SchoolSearchResultsPageQuery(\n  $query: SchoolSearchQuery!\n) {\n  search: newSearch {\n    ...SchoolSearchPagination_search_1ZLmLD\n  }\n}\n\nfragment SchoolSearchPagination_search_1ZLmLD on newSearch {\n  schools(query: $query, first: 8, after: \"\") {\n    edges {\n      cursor\n      node {\n        name\n        ...SchoolCard_school\n        id\n        __typename\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    resultCount\n  }\n}\n\nfragment SchoolCard_school on School {\n  legacyId\n  name\n  numRatings\n  avgRating\n  avgRatingRounded\n  ...SchoolCardHeader_school\n  ...SchoolCardLocation_school\n}\n\nfragment SchoolCardHeader_school on School {\n  name\n}\n\nfragment SchoolCardLocation_school on School {\n  city\n  state\n}\n";
+
+        const variables = {
+            query: {
+              text: univ
             }
-          };
+        };
 
         try {
-            const response = await fetch(apiUrl, parameter('Basic dGVzdDp0ZXN0', payload));
+            const response = await fetch(apiUrl, parameter('Basic dGVzdDp0ZXN0', query, variables));
             if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
             }
             const data = await response.json();
-            const lstOfSchools = data.data.search.schools.edges;
-            const schools = data.data.search.schools.edges.map(edge => edge.node.name);
-            console.log(schools);
-            setNameOptions(schools);
+            const opts = data.data.search.schools.edges.map(e => e.node);
+            console.log(opts);
+            setOptions(opts);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -186,6 +119,7 @@ const SelectUniversity = ({handleUniversity}) => {
         event.preventDefault();
         const index = event.target.id;
         const chosen = options[index];
+        console.log(chosen);
       
         handleUniversity({chosen});
         const div = document.getElementById("univ-choices");
@@ -193,7 +127,7 @@ const SelectUniversity = ({handleUniversity}) => {
         const form = document.getElementById("select-university");
         form.innerHTML = `University Name : ${chosen.name}`;
 
-        setNameOptions([]);
+        setOptions([]);
     }
 
     return (
@@ -207,10 +141,10 @@ const SelectUniversity = ({handleUniversity}) => {
 
             <div className ="choices" style={{margin: "3% 0 0 0 "}} id = "univ-choices">
                 {
-                    nameOptions.map((option, index) => (
+                    options.map((option, index) => (
                         <div className="text-input bubble" style={{gap: "2px", paddingLeft: "8px"}}>
-                        <input type ="radio" id = {index} value = {option} name = "univ-name" onClick={chooseUniversity}></input>
-                        <label htmlFor={option}>{option}</label>
+                        <input type ="radio" id = {index} value = {option.name} name = "univ-name" onClick={chooseUniversity}></input>
+                        <label htmlFor={option.name}>{option.name}</label>
                         </div>
                     ))
                 }
@@ -284,7 +218,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
             <h1>Select Your Courses</h1>
             {loaded && (
                 <div>
-                    <div className="text-input">
+                    {/* <div className="text-input">
                         <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "">
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
@@ -303,7 +237,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
                         {courses.map((course, index) => (
                             <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
                         ))}
-                    </div>
+                    </div> */}
                 </div>
             )}
         </div>
@@ -328,3 +262,6 @@ const Course = ({index, name, deleteFunction}) => {
 
 
 export default Form;
+
+// "query SchoolSearchResultsPageQuery(  $query: SchoolSearchQuery!\n) {\n  search: newSearch {\n    ...SchoolSearchPagination_search_1ZLmLD\n  }\n}\n\nfragment SchoolSearchPagination_search_1ZLmLD on newSearch {\n  schools(query: $query, first: 8, after: \"\") {\n    edges {\n      cursor\n      node {\n        name\n        ...SchoolCard_school\n        id\n        __typename\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    resultCount\n  }\n}\n\nfragment SchoolCard_school on School {\n  legacyId\n  name\n  numRatings\n  avgRating\n  avgRatingRounded\n  ...SchoolCardHeader_school\n  ...SchoolCardLocation_school\n}\n\nfragment SchoolCardHeader_school on School {\n  name\n}\n\nfragment SchoolCardLocation_school on School {\n  city\n  state\n}\n"
+
