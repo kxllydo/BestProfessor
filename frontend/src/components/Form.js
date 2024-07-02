@@ -12,23 +12,27 @@ const parameter = (token, query, variables) => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': token,
-            'Accept': '*/*',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Cookie': 'cid=5WKtlOpq2c-20240604; _ga=GA1.1.246269703.1717526946; ccpa-notice-viewed-02=true; oauthState=Y49VeQCF8mobIFwpskRUquszPwti0IPq4ZnttsTLvmI; oauthProvider=google; userSchoolId=U2Nob29sLTE1MjE=; userSchoolLegacyId=1521; userSchoolName=Drexel%20University; _ga_WET17VWCJ3=GS1.1.1719431599.29.1.1719432629.0.0.0',
-            'Dnt': '1',
-            'Host': 'www.ratemyprofessors.com',
-            'Origin': 'https://www.ratemyprofessors.com',
-            'Referer': 'https://www.ratemyprofessors.com/search/professors/1521?q=*',
-            'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"',
-            'Sec-Ch-Ua-Mobile': '?0',
-            'Sec-Ch-Ua-Platform': '"Windows"',
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin'
+            // 'Accept': '*/*',
+            // 'Accept-Language': 'en-US,en;q=0.9',
+            // 'Cookie': 'cid=5WKtlOpq2c-20240604; _ga=GA1.1.246269703.1717526946; ccpa-notice-viewed-02=true; oauthState=Y49VeQCF8mobIFwpskRUquszPwti0IPq4ZnttsTLvmI; oauthProvider=google; userSchoolId=U2Nob29sLTE1MjE=; userSchoolLegacyId=1521; userSchoolName=Drexel%20University; _ga_WET17VWCJ3=GS1.1.1719431599.29.1.1719432629.0.0.0',
+            // 'Dnt': '1',
+            // 'Host': 'www.ratemyprofessors.com',
+            // 'Origin': 'https://www.ratemyprofessors.com',
+            // 'Referer': 'https://www.ratemyprofessors.com/search/professors/1521?q=*',
+            // 'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"',
+            // 'Sec-Ch-Ua-Mobile': '?0',
+            // 'Sec-Ch-Ua-Platform': '"Windows"',
+            // 'Sec-Fetch-Dest': 'empty',
+            // 'Sec-Fetch-Mode': 'cors',
+            // 'Sec-Fetch-Site': 'same-origin'
         },
         body: JSON.stringify(payload),
     };
 };
+
+function capitalize(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+  }
 
 const apiUrl = 'https://www.ratemyprofessors.com/graphql';
 
@@ -38,6 +42,8 @@ const Form = () => {
     const [choseUniv, setChoseUniv] = useState(false);
     const [univ, setUniv] = useState({});
     const [univId, setUnivId] = useState("");
+    const [loaded, setLoaded] = useState(false);
+
 
     const setCourse = (event) => {
         setSelect(event.target.value);
@@ -56,6 +62,7 @@ const Form = () => {
         setUniv({chosen});
         setChoseUniv(true);
         setUnivId(chosen.id);
+        setLoaded(true);
     }
 
     useEffect(() => {
@@ -67,7 +74,7 @@ const Form = () => {
             <SelectUniversity handleUniversity={setUniversity}/>
             
             {/* {choseUniv && ( */}
-            <SelectCourse courses = {courses} add = {addCourse} deleteCourse={deleteCourse} set = {setCourse} select = {select} id = {univId}/>
+            <SelectCourse courses = {courses} add = {addCourse} deleteCourse={deleteCourse} set = {setCourse} select = {select} id = {univId} loaded = {loaded}/>
             {/* )
             } */}
             
@@ -153,13 +160,12 @@ const SelectUniversity = ({handleUniversity}) => {
     )
 }
 
-const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
+const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
-    const [dept, setDept] = useState("");
+    const [dept, setDept] = useState({});
     const [classes, setClasses] = useState([]);
     const [course, setCours] = useState("");
-    const [loaded, setLoaded] = useState(false);
 
     const setCourse = (event) => {
         setCours(event.target.value);
@@ -167,7 +173,8 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
     };
 
     const setDepartment = (event) => {
-        setDept(event.target.value);
+        const index = event.target.options[event.target.selectedIndex].getAttribute('id');
+        setDept(depts[index])
     }
 
     const addCourse = (event) => {
@@ -179,15 +186,23 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
     }
 
     const getDepts = async() => {
-        const response = await fetch (`api/departments/${id}`, 
-            {
-                method: "GET",
-            }
-        );
+        const query = "query TeacherSearchResultsPageQuery(\n $query: TeacherSearchQuery!\n $schoolID: ID\n $includeSchoolFilter: Boolean!\n) {\n search: newSearch {\n ...TeacherSearchPagination_search_1ZLmLD\n }\n school: node(id: $schoolID) @include(if: $includeSchoolFilter) {\n __typename\n ... on School {\n name\n }\n id\n }\n}\n\nfragment TeacherSearchPagination_search_1ZLmLD on newSearch {\n teachers(query: $query, first: 8, after: \"\") {\n didFallback\n edges {\n cursor\n node {\n ...TeacherCard_teacher\n id\n __typename\n }\n }\n pageInfo {\n hasNextPage\n endCursor\n }\n resultCount\n filters {\n field\n options {\n value\n id\n }\n }\n }\n}\n\nfragment TeacherCard_teacher on Teacher {\n id\n legacyId\n avgRating\n numRatings\n ...CardFeedback_teacher\n ...CardSchool_teacher\n ...CardName_teacher\n ...TeacherBookmark_teacher\n}\n\nfragment CardFeedback_teacher on Teacher {\n wouldTakeAgainPercent\n avgDifficulty\n}\n\nfragment CardSchool_teacher on Teacher {\n department\n school {\n name\n id\n }\n}\n\nfragment CardName_teacher on Teacher {\n firstName\n lastName\n}\n\nfragment TeacherBookmark_teacher on Teacher {\n id\n isSaved\n}\n";
+        const variables = {query: {text: "", schoolID: id, fallback: true, departmentID: null}, includeSchoolFilter:true, schoolID: id};
+
+        const response = await fetch (apiUrl, parameter("Basic dGVzdDp0ZXN0", query, variables));
         const data = await response.json();
-        setDepts(data);
-        setLoaded(true)
+        let deptOptions = data.data.search.teachers.filters[0].options
+        let departments = []
+
+        for (let i = 0; i < deptOptions.length; i++){
+            if (deptOptions[i].value != 'select department' || deptOptions[i].value != 'not specified'){
+                departments.push({ id: deptOptions[i].id, value: capitalize(deptOptions[i].value) })
+            }
+        }
+        setDepts(departments);
     }
+
+
 
     const getCourses = async() => {
         console.log(dept);
@@ -202,42 +217,94 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
         setChoseDept(true);
     }
 
+    const getCourses2 = async(deptId) => {
+        let hasNextPage = true;
+        while (hasNextPage){
+            const query = "query TeacherSearchResultsPageQuery(\n $query: TeacherSearchQuery!\n $schoolID: ID\n $includeSchoolFilter: Boolean!\n) {\n search: newSearch {\n ...TeacherSearchPagination_search_1ZLmLD\n }\n school: node(id: $schoolID) @include(if: $includeSchoolFilter) {\n __typename\n ... on School {\n name\n }\n id\n }\n}\n\nfragment TeacherSearchPagination_search_1ZLmLD on newSearch {\n teachers(query: $query, first: 8, after: \"\") {\n didFallback\n edges {\n cursor\n node {\n ...TeacherCard_teacher\n id\n __typename\n }\n }\n pageInfo {\n hasNextPage\n endCursor\n }\n resultCount\n filters {\n field\n options {\n value\n id\n }\n }\n }\n}\n\nfragment TeacherCard_teacher on Teacher {\n id\n legacyId\n avgRating\n numRatings\n ...CardFeedback_teacher\n ...CardSchool_teacher\n ...CardName_teacher\n ...TeacherBookmark_teacher\n}\n\nfragment CardFeedback_teacher on Teacher {\n wouldTakeAgainPercent\n avgDifficulty\n}\n\nfragment CardSchool_teacher on Teacher {\n department\n school {\n name\n id\n }\n}\n\nfragment CardName_teacher on Teacher {\n firstName\n lastName\n}\n\nfragment TeacherBookmark_teacher on Teacher {\n id\n isSaved\n}\n";
+
+            const variables = {query: {text: "", schoolID: id, fallback: true, departmentID: deptId}, includeSchoolFilter:true, schoolID:id};
+            const response = await fetch(apiUrl, parameter("Basic dGVzdDp0ZXN0", query, variables));
+            const data = await response.json();
+
+            
+        }
+
+    }
+
+    const getProfessros = async(deptId) => {
+        let professors = [];
+            let hasNextPage = true;
+            let cursor = null;
+            const count = 8;
+        while (hasNextPage) {
+            const query = ` query TeacherSearchPaginationQuery($count: Int!, $cursor: String, $query: TeacherSearchQuery!) { search: newSearch { ...TeacherSearchPagination_search_1jWD3d } } fragment TeacherSearchPagination_search_1jWD3d on newSearch { teachers(query: $query, first: $count, after: $cursor) { didFallback edges { cursor node { ...TeacherCard_teacher id __typename } } pageInfo { hasNextPage endCursor } resultCount filters { field options { value id } } } } fragment TeacherCard_teacher on Teacher { id legacyId avgRating numRatings ...CardFeedback_teacher ...CardSchool_teacher ...CardName_teacher ...TeacherBookmark_teacher } fragment CardFeedback_teacher on Teacher { wouldTakeAgainPercent avgDifficulty } fragment CardSchool_teacher on Teacher { department school { name id } } fragment CardName_teacher on Teacher { firstName lastName } fragment TeacherBookmark_teacher on Teacher { id isSaved }`;
+    
+            const variables = {
+                count: count,
+                cursor: cursor,
+                query: {
+                text: '',
+                schoolID: id,
+                fallback: true,
+                departmentID: deptId
+                }
+            };
+    
+            const response = await fetch(apiUrl, parameter('Basic dGVzdDp0ZXN0', query, variables));
+    
+        const data = await response.json();
+    
+        if (data.errors) {
+            throw new Error(`GraphQL query failed with errors: ${JSON.stringify(data.errors)}`);
+        }
+    
+        const teachersData = data.data.search.teachers;
+        professors = professors.concat(teachersData.edges.map(edge => edge.node));
+    
+        hasNextPage = teachersData.pageInfo.hasNextPage;
+        cursor = hasNextPage ? teachersData.pageInfo.endCursor : null;
+        }
+    
+        console.log(professors);
+    }
+
     useEffect(() => {
-        if (dept)
-            getCourses();
-    }, [dept])
+        if (loaded){
+            getDepts()
+        }
+      }, [loaded]);
 
-
-    useEffect(() => {
-        getDepts()
-      }, []);
-
+    //   useEffect(() => {
+    //     if (loaded){
+    //         getCourses2(dept.deptId)
+    //     }
+    //   }, [dept]);
 
       return (
         <div className="general-container">
             <h1>Select Your Courses</h1>
             {loaded && (
                 <div>
-                    {/* <div className="text-input">
+                     <div className="text-input">
                         <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "">
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
-                                <option key={index} value={dept}>{dept}</option>
+                                <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
-                        <select id="course1" name="courses" onChange={setCourse} defaultValue = "">
+                        <datalist id="course1" name="courses" onChange={setCourse} defaultValue = "">
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                                 <option key={index} value={clas}>{clas}</option>
                             ))}
-                        </select>
+                        </datalist>
                         <button id="add-btn" onClick={addCourse}>+</button>
                     </div>
                     <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
                         {courses.map((course, index) => (
                             <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
                         ))}
-                    </div> */}
+                    </div>
                 </div>
             )}
         </div>
