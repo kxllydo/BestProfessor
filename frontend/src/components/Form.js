@@ -168,7 +168,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
 
     const setCourse = (event) => {
         setCours(event.target.value);
-
     };
 
     const setDepartment = (event) => {
@@ -178,9 +177,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
 
     const addCourse = (event) => {
         event.preventDefault();
-
-        if (course)
-            add(course);
+        add(course);
     }
 
     const getDepts = async() => {
@@ -198,21 +195,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             }
         }
         setDepts(departments);
-    }
-
-
-
-    const getCourses = async() => {
-        console.log(dept);
-        const response = await fetch (`/api/courses/${id}/${dept}`, 
-            {
-                method : "GET",
-            }
-        )
-
-        const data = await response.json();
-        setClasses(data);
-        setChoseDept(true);
     }
 
    
@@ -291,7 +273,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                                 <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
-                        <select id="course1" name="courses" onChange={setCourse} defaultValue = "">
+                        <select id="courses"  onChange={setCourse} defaultValue = "">
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                                 <option key={index} value={clas}>{clas}</option>
