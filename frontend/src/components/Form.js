@@ -114,7 +114,6 @@ const SelectUniversity = ({handleUniversity}) => {
             }
             const data = await response.json();
             const opts = data.data.search.schools.edges.map(e => e.node);
-            console.log(opts);
             setOptions(opts);
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -126,7 +125,6 @@ const SelectUniversity = ({handleUniversity}) => {
         event.preventDefault();
         const index = event.target.id;
         const chosen = options[index];
-        console.log(chosen);
       
         handleUniversity({chosen});
         const div = document.getElementById("univ-choices");
@@ -166,6 +164,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const [dept, setDept] = useState({});
     const [classes, setClasses] = useState([]);
     const [course, setCours] = useState("");
+    const [profs, setProfs] = useState([]);
 
     const setCourse = (event) => {
         setCours(event.target.value);
@@ -179,7 +178,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
 
     const addCourse = (event) => {
         event.preventDefault();
-        console.log(course);
 
         if (course)
             add(course);
@@ -217,55 +215,52 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
         setChoseDept(true);
     }
 
-    const getCourses2 = async(deptId) => {
-        let hasNextPage = true;
-        while (hasNextPage){
-            const query = "query TeacherSearchResultsPageQuery(\n $query: TeacherSearchQuery!\n $schoolID: ID\n $includeSchoolFilter: Boolean!\n) {\n search: newSearch {\n ...TeacherSearchPagination_search_1ZLmLD\n }\n school: node(id: $schoolID) @include(if: $includeSchoolFilter) {\n __typename\n ... on School {\n name\n }\n id\n }\n}\n\nfragment TeacherSearchPagination_search_1ZLmLD on newSearch {\n teachers(query: $query, first: 8, after: \"\") {\n didFallback\n edges {\n cursor\n node {\n ...TeacherCard_teacher\n id\n __typename\n }\n }\n pageInfo {\n hasNextPage\n endCursor\n }\n resultCount\n filters {\n field\n options {\n value\n id\n }\n }\n }\n}\n\nfragment TeacherCard_teacher on Teacher {\n id\n legacyId\n avgRating\n numRatings\n ...CardFeedback_teacher\n ...CardSchool_teacher\n ...CardName_teacher\n ...TeacherBookmark_teacher\n}\n\nfragment CardFeedback_teacher on Teacher {\n wouldTakeAgainPercent\n avgDifficulty\n}\n\nfragment CardSchool_teacher on Teacher {\n department\n school {\n name\n id\n }\n}\n\nfragment CardName_teacher on Teacher {\n firstName\n lastName\n}\n\nfragment TeacherBookmark_teacher on Teacher {\n id\n isSaved\n}\n";
-
-            const variables = {query: {text: "", schoolID: id, fallback: true, departmentID: deptId}, includeSchoolFilter:true, schoolID:id};
-            const response = await fetch(apiUrl, parameter("Basic dGVzdDp0ZXN0", query, variables));
-            const data = await response.json();
-
-            
-        }
-
-    }
-
-    const getProfessros = async(deptId) => {
+   
+    const getProfessorByDept = async(deptId) => {
         let professors = [];
-            let hasNextPage = true;
-            let cursor = null;
-            const count = 8;
+        let hasNextPage = true;
+        let cursor = null;
+        const count = 8;
         while (hasNextPage) {
             const query = ` query TeacherSearchPaginationQuery($count: Int!, $cursor: String, $query: TeacherSearchQuery!) { search: newSearch { ...TeacherSearchPagination_search_1jWD3d } } fragment TeacherSearchPagination_search_1jWD3d on newSearch { teachers(query: $query, first: $count, after: $cursor) { didFallback edges { cursor node { ...TeacherCard_teacher id __typename } } pageInfo { hasNextPage endCursor } resultCount filters { field options { value id } } } } fragment TeacherCard_teacher on Teacher { id legacyId avgRating numRatings ...CardFeedback_teacher ...CardSchool_teacher ...CardName_teacher ...TeacherBookmark_teacher } fragment CardFeedback_teacher on Teacher { wouldTakeAgainPercent avgDifficulty } fragment CardSchool_teacher on Teacher { department school { name id } } fragment CardName_teacher on Teacher { firstName lastName } fragment TeacherBookmark_teacher on Teacher { id isSaved }`;
     
-            const variables = {
-                count: count,
-                cursor: cursor,
-                query: {
-                text: '',
-                schoolID: id,
-                fallback: true,
-                departmentID: deptId
-                }
-            };
-    
+            const variables = {count: count, cursor: cursor, query: {text: '', schoolID: id, fallback: true, departmentID: deptId}};
             const response = await fetch(apiUrl, parameter('Basic dGVzdDp0ZXN0', query, variables));
     
-        const data = await response.json();
+            const data = await response.json();
     
-        if (data.errors) {
-            throw new Error(`GraphQL query failed with errors: ${JSON.stringify(data.errors)}`);
+            if (data.errors) {
+                throw new Error(`GraphQL query failed with errors: ${JSON.stringify(data.errors)}`);
+            }
+    
+            const teachersData = data.data.search.teachers;
+            professors = professors.concat(teachersData.edges.map(edge => edge.node.id));
+            hasNextPage = teachersData.pageInfo.hasNextPage;
+            cursor = hasNextPage ? teachersData.pageInfo.endCursor : null;
         }
-    
-        const teachersData = data.data.search.teachers;
-        professors = professors.concat(teachersData.edges.map(edge => edge.node));
-    
-        hasNextPage = teachersData.pageInfo.hasNextPage;
-        cursor = hasNextPage ? teachersData.pageInfo.endCursor : null;
-        }
-    
+        setProfs(professors);
         console.log(professors);
+    }
+
+    const getCourses2 = async() => {
+        const unique = new Set()
+        const courses = [];
+        for (let i = 0; i < profs.length; i++){
+            let profId = profs[i];
+            const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName department courseCodes {courseName}  } } } `; 
+            const variables = {id:profId};
+            const response = await fetch (apiUrl, parameter("Basic dGVzdDp0ZXN0", query, variables));
+            const data = await response.json();
+            const courseCodes = data.data.node.courseCodes;
+            courseCodes.forEach(course => {
+                if (!unique.has(course.courseName)){
+                    unique.add(course.courseName);
+                    courses.push(course.courseName);
+                }
+            })
+        }
+        setClasses(courses);
+        console.log(courses);
     }
 
     useEffect(() => {
@@ -274,11 +269,15 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
         }
       }, [loaded]);
 
-    //   useEffect(() => {
-    //     if (loaded){
-    //         getCourses2(dept.deptId)
-    //     }
-    //   }, [dept]);
+      useEffect(() => {
+        if (loaded){
+            getProfessorByDept(dept.id)
+        }
+      }, [dept]);
+
+      useEffect(() => {
+        getCourses2()
+      }, [profs]);
 
       return (
         <div className="general-container">
@@ -292,12 +291,12 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                                 <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
-                        <datalist id="course1" name="courses" onChange={setCourse} defaultValue = "">
+                        <select id="course1" name="courses" onChange={setCourse} defaultValue = "">
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                                 <option key={index} value={clas}>{clas}</option>
                             ))}
-                        </datalist>
+                        </select>
                         <button id="add-btn" onClick={addCourse}>+</button>
                     </div>
                     <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
