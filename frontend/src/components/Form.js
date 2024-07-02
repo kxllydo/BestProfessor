@@ -27,6 +27,10 @@ const Form = () => {
         setUnivId(chosen.id);
     }
 
+    useEffect(() => {
+        console.log(courses);
+    }, [courses])
+
     return (
         <div id="form-container">
             <SelectUniversity handleUniversity={setUniversity}/>
@@ -38,6 +42,7 @@ const Form = () => {
         </div>
     );
 }
+
 
 const SelectUniversity = ({handleUniversity}) => {
     const [univ, setUniv] = useState("");
@@ -130,7 +135,9 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
     const addCourse = (event) => {
         event.preventDefault();
         console.log(course);
-        add(course);
+
+        if (course)
+            add(course);
     }
 
     const getDepts = async() => {
@@ -174,13 +181,13 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id}) => {
             {loaded && (
                 <div>
                     <div className="text-input">
-                        <select id="dept1" name="depts" onChange={setDepartment}>
+                        <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "">
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
                                 <option key={index} value={dept}>{dept}</option>
                             ))}
                         </select>
-                        <select id="course1" name="courses" onChange={setCourse}>
+                        <select id="course1" name="courses" onChange={setCourse} defaultValue = "">
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                                 <option key={index} value={clas}>{clas}</option>
