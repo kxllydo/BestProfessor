@@ -148,6 +148,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const [classes, setClasses] = useState([]);
     const [course, setCours] = useState("");
     const [profs, setProfs] = useState([]);
+    const [showBtn, setShowBtn] = useState(false);
 
     const setCourse = (event) => {
         setCours(event.target.value);
@@ -244,9 +245,9 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
 
       useEffect(() => {
         if (courses.length > 0){
-            return (
-                <button class="btn" id = "course-submit-btn" style={{marginTop: '2%'}}>Submit</button>
-            )
+            setShowBtn(true);
+        }else{
+            setShowBtn(false);
         }
       }, [courses])
 
@@ -255,13 +256,13 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             <h1>Select Your Courses</h1>
                 <div>
                      <div className="text-input">
-                        <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "">
+                        <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
                                 <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
-                        <select id="courses"  onChange={setCourse} defaultValue = "">
+                        <select id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                                 <option key={index} value={clas}>{clas}</option>
@@ -274,6 +275,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                             <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
                         ))}
                     </div>
+                    {showBtn && (<button class="btn" id = "course-submit-btn" style={{marginTop: '2%', paddingTop: '6px', paddingBottom: '6px'}}>Submit</button>)}
                 </div>
         </div>
     );
