@@ -1,4 +1,5 @@
 import {useState, useEffect} from "react";
+
 import "../styles/Form.css"
 
 const parameter = (token, query, variables) => {
@@ -12,19 +13,6 @@ const parameter = (token, query, variables) => {
         headers: {
             'Content-Type': 'application/json',
             'Authorization': token,
-            // 'Accept': '*/*',
-            // 'Accept-Language': 'en-US,en;q=0.9',
-            // 'Cookie': 'cid=5WKtlOpq2c-20240604; _ga=GA1.1.246269703.1717526946; ccpa-notice-viewed-02=true; oauthState=Y49VeQCF8mobIFwpskRUquszPwti0IPq4ZnttsTLvmI; oauthProvider=google; userSchoolId=U2Nob29sLTE1MjE=; userSchoolLegacyId=1521; userSchoolName=Drexel%20University; _ga_WET17VWCJ3=GS1.1.1719431599.29.1.1719432629.0.0.0',
-            // 'Dnt': '1',
-            // 'Host': 'www.ratemyprofessors.com',
-            // 'Origin': 'https://www.ratemyprofessors.com',
-            // 'Referer': 'https://www.ratemyprofessors.com/search/professors/1521?q=*',
-            // 'Sec-Ch-Ua': '"Not/A)Brand";v="8", "Chromium";v="126", "Microsoft Edge";v="126"',
-            // 'Sec-Ch-Ua-Mobile': '?0',
-            // 'Sec-Ch-Ua-Platform': '"Windows"',
-            // 'Sec-Fetch-Dest': 'empty',
-            // 'Sec-Fetch-Mode': 'cors',
-            // 'Sec-Fetch-Site': 'same-origin'
         },
         body: JSON.stringify(payload),
     };
@@ -43,6 +31,8 @@ const Form = () => {
     const [univ, setUniv] = useState({});
     const [univId, setUnivId] = useState("");
     const [loaded, setLoaded] = useState(false);
+
+    const [showCourses, setShowCourses] = useState(false);
 
 
     const setCourse = (event) => {
@@ -69,11 +59,21 @@ const Form = () => {
         <div id="form-container">
             <SelectUniversity handleUniversity={setUniversity}/>
             
-            {/* {choseUniv && ( */}
-            <SelectCourse courses = {courses} add = {addCourse} deleteCourse={deleteCourse} set = {setCourse} select = {select} id = {univId} loaded = {loaded}/>
-            {/* )
-            } */}
-            
+            { choseUniv &&
+                <SelectCourse 
+                    courses = {courses} 
+                    add = {addCourse} 
+                    deleteCourse = {deleteCourse} 
+                    set = {setCourse} 
+                    select = {select} 
+                    id = {univId}
+                    loaded = {loaded}
+                    />
+            }
+
+            { choseUniv && courses.length > 0 &&
+                <SelectProfessor courses = {courses} />
+            }
         </div>
     );
 }
@@ -82,27 +82,18 @@ const Form = () => {
 const SelectUniversity = ({handleUniversity}) => {
     const [univ, setUniv] = useState("");
     const [options, setOptions] = useState([]);
-    ;
-    const setUniversity = (event) => {
-        event.preventDefault();
-        setUniv(event.target.value);
-    }
 
     const getUniversities = async(event) => {
         event.preventDefault();
-        const div = document.getElementById("univ-choices");
-        if (div.style.display == "none"){
-            div.style.display = "flex";
-        };
 
         const query = `query SchoolSearchResultsPageQuery($query: SchoolSearchQuery!) { search: newSearch { schools(query: $query) { edges { node { id name } } } } } `;
         const variables = {query: {text: univ}};
 
         try {
             const response = await fetch(apiUrl, parameter('Basic dGVzdDp0ZXN0', query, variables));
-            if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-            }
+            if (!response.ok)
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            
             const data = await response.json();
             const opts = data.data.search.schools.edges.map(e => e.node);
             setOptions(opts);
@@ -129,13 +120,14 @@ const SelectUniversity = ({handleUniversity}) => {
     return (
         <div className="general-container">
             <h1>Select University</h1>
+
             <div className = "text-input" id = "select-university">
                 <label htmlFor = "school">University Name:</label>
-                <input type = "text" style={{borderRadius: "10px", border: "solid 1px"}} onChange={setUniversity}></input>
-                <button type="submit" onClick={getUniversities}>Search</button>
+                <input type = "text" onChange = {event => setUniv(event.target.value)}></input>
+                <button type = "submit" onClick = {getUniversities}>Search</button>
             </div>
 
-            <div className ="choices" style={{margin: "3% 0 0 0 "}} id = "univ-choices">
+            <div className ="choices" id = "univ-choices">
                 {
                     options.map((option, index) => (
                         <div className="text-input bubble" style={{gap: "2px", paddingLeft: "8px"}}>
@@ -281,7 +273,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     );
 };
     
-
 const Course = ({index, name, deleteFunction}) => {
     const onDelete = (event) =>{
         event.preventDefault();
@@ -296,6 +287,21 @@ const Course = ({index, name, deleteFunction}) => {
     )
 }
 
+const SelectProfessor = ({ courses }) => {
+    const [a, b] = useState(3);
+
+    useEffect(() => {
+        b(a + 1);
+    }, [courses])
+
+    return (
+       <div className = "general-container">
+            <h1>Select Your Professors</h1>
+
+            <h1> {a} </h1>
+       </div>
+    )
+}
 
 
 export default Form;
