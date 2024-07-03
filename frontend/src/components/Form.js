@@ -124,7 +124,7 @@ const SelectUniversity = ({handleUniversity}) => {
             <div className = "text-input" id = "select-university">
                 <label htmlFor = "school">University Name:</label>
                 <input type = "text" onChange = {event => setUniv(event.target.value)}></input>
-                <button type = "submit" onClick = {getUniversities}>Search</button>
+                <button type = "submit" className="btn" onClick = {getUniversities}>Search</button>
             </div>
 
             <div className ="choices" id = "univ-choices">
@@ -242,10 +242,17 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
         getCourses()
       }, [profs]);
 
+      useEffect(() => {
+        if (courses.length > 0){
+            return (
+                <button class="btn" id = "course-submit-btn" style={{marginTop: '2%'}}>Submit</button>
+            )
+        }
+      }, [courses])
+
       return (
         <div className="general-container">
             <h1>Select Your Courses</h1>
-            {loaded && (
                 <div>
                      <div className="text-input">
                         <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "">
@@ -268,7 +275,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                         ))}
                     </div>
                 </div>
-            )}
         </div>
     );
 };
