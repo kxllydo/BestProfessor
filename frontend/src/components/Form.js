@@ -28,12 +28,8 @@ function capitalize(str) {
 const Form = () => {
     const [canInteract, setCanInteract] = useState(true);
     const [university, setUniversity] = useState("");
-    const [universityDataSet, setUniversityDataSet] = useState({});
+    const [profByDept, setProfByDept] = useState([]);
     const [courses, setCourses] = useState([]);
-
-    const setCourse = (event) => {
-        
-    };
 
     const addCourse = (course) => {
         setCourses((prevCourses) => [...prevCourses, course]);
@@ -42,6 +38,10 @@ const Form = () => {
     const deleteCourse = (index) =>{
         const updatedCourses = courses.filter((course, i) => i !== index); //research
         setCourses(updatedCourses);
+    }
+
+    const addProfByDept = (profs) => {
+        setProfByDept((prevProfs) => [...prevProfs, profs]);
     }
 
     return (
@@ -58,13 +58,16 @@ const Form = () => {
                     loaded = {true}
                     courses = {courses} 
                     add = {addCourse} 
-                    deleteCourse = {deleteCourse} 
-                    set = {setCourse} 
-                    id = {university}/>
+                    deleteCourse = {deleteCourse}
+                    id = {university}
+                    addProfs = {addProfByDept}/>
             }
 
             {university && courses.length > 0 &&
-                <SelectProfessor university = {university} courses = {courses} />
+                <SelectProfessor 
+                    university = {university} 
+                    courses = {courses} 
+                    dataSet = {profByDept}/>
             }
         </div>
     );
@@ -124,12 +127,12 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
                         {canInteract &&
                             (<>
                                 <input type = "text" onChange = {event => _setUniversity(event.target.value)} />
-                                <button type = "submit" onClick = {getUniversities}>Search</button>
+                                <button className = "btn" type = "submit" onClick = {getUniversities}>Search</button>
                             </>)
                         ||
                             (<>
                                 <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled />
-                                <button type = "submit" onClick = {getUniversities} disabled>Search</button>
+                                <button className = "btn" type = "submit" onClick = {getUniversities} disabled>Search</button>
                             </>)
                         }
                     </div>
@@ -150,7 +153,7 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     )
 }
 
-const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => {
+const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState({});
@@ -158,6 +161,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const [course, setCours] = useState("");
     const [profs, setProfs] = useState([]);
     const [showBtn, setShowBtn] = useState(false);
+    const [pressed, setPressed] = useState(false);
 
     const setCourse = (event) => {
         setCours(event.target.value);
@@ -171,6 +175,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const addCourse = (event) => {
         event.preventDefault();
         add(course);
+        setPressed(true);
     }
 
     const getDepts = async() => {
@@ -219,9 +224,11 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const getCourses = async() => {
         const unique = new Set()
         const courses = [];
+        const profByDept = [];
         for (let i = 0; i < profs.length; i++){
             let profId = profs[i];
-            const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName department courseCodes {courseName}  } } } `; 
+            let tempCourse = [];
+            const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName departmentId courseCodes {courseName} } } } `; 
             const variables = {id:profId};
             const response = await fetch (apiUrl, parameter(query, variables));
             const data = await response.json();
@@ -229,11 +236,47 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             courseCodes.forEach(course => {
                 if (!unique.has(course.courseName)){
                     unique.add(course.courseName);
-                    courses.push(course.courseName);
+                    courses.push({'course' : course.courseName, 'dept': data.data.node.departmentId});
+                    tempCourse.push(course.courseName);
                 }
             })
         }
+
         setClasses(courses);
+    };
+
+    const getProfessorCourses = async () => {
+        const unique = new Set()
+        const profByDept = [];
+        for (let i = 0; i < profs.length; i++){
+            let profId = profs[i];
+            let tempCourse = [];
+
+            const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName departmentId courseCodes {courseName} avgRating } } } `; 
+            const variables = {id:profId};
+            const response = await fetch (apiUrl, parameter(query, variables));
+            const data = await response.json();
+            const node = data.data.node;
+
+            const courseCodes = node.courseCodes;
+            courseCodes.forEach(course => {
+            if (!unique.has(course.courseName)){
+                    unique.add(course.courseName);
+                    tempCourse.push(course.courseName);
+                }
+            })
+
+            if (node && node.avgRating != 0 && pressed){
+                let fullName = `${node.firstName} ${node.lastName}`
+                let id = node.id
+                let rating = node.avgRating
+                let dept = node.departmentId
+                profByDept.push({'name': fullName, 'id': id, 'rating':rating, 'courses': tempCourse, 'dept': dept});
+                setPressed(false);
+            }
+        }
+
+        addProfs(profByDept);
     }
 
     useEffect(() => {
@@ -252,12 +295,14 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
         getCourses()
       }, [profs]);
 
+
       useEffect(() => {
         if (courses.length > 0){
             setShowBtn(true);
         }else{
             setShowBtn(false);
         }
+        getProfessorCourses()
       }, [courses])
 
       return (
@@ -274,7 +319,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                         <select id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
-                            <option key={index} value={clas}>{clas}</option>
+                                <option data-dept = {clas} key={index} value={clas.course}>{clas.course}</option>
                             ))}
                         </select>
 
@@ -290,7 +335,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                 </div>
         </div>
     );
-};
+}
     
 const Course = ({index, name, deleteFunction}) => {
     const onDelete = (event) =>{
@@ -306,7 +351,11 @@ const Course = ({index, name, deleteFunction}) => {
     )
 }
 
-const SelectProfessor = ({}) => {
+const SelectProfessor = ({ dataSet, courses }) => {
+
+    useEffect(() => {
+        console.log(courses);
+    }, [courses]);
 
     return (
         <div className = "general-container">
