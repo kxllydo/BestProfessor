@@ -31,9 +31,7 @@ const Form = () => {
     const [univ, setUniv] = useState({});
     const [univId, setUnivId] = useState("");
     const [loaded, setLoaded] = useState(false);
-
-    const [showCourses, setShowCourses] = useState(false);
-
+    const [profByDept, setProfByDept] = useState([]);
 
     const setCourse = (event) => {
         setSelect(event.target.value);
@@ -55,6 +53,14 @@ const Form = () => {
         setLoaded(true);
     }
 
+    const addProfByDept = (profs) => {
+        setProfByDept((prevProfs) => [...prevProfs, profs]);
+    }
+
+    useEffect(() => {
+        console.log(profByDept)
+    }, [profByDept])
+
     return (
         <div id="form-container">
             <SelectUniversity handleUniversity={setUniversity}/>
@@ -68,6 +74,7 @@ const Form = () => {
                     select = {select} 
                     id = {univId}
                     loaded = {loaded}
+                    addProfs = {addProfByDept} 
                     />
             }
 
@@ -141,7 +148,7 @@ const SelectUniversity = ({handleUniversity}) => {
     )
 }
 
-const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => {
+const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState({});
@@ -149,6 +156,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const [course, setCours] = useState("");
     const [profs, setProfs] = useState([]);
     const [showBtn, setShowBtn] = useState(false);
+    const [pressed, setPressed] = useState(false);
 
     const setCourse = (event) => {
         setCours(event.target.value);
@@ -162,6 +170,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const addCourse = (event) => {
         event.preventDefault();
         add(course);
+        setPressed(true);
     }
 
     const getDepts = async() => {
@@ -210,9 +219,11 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const getCourses = async() => {
         const unique = new Set()
         const courses = [];
+        const profByDept = [];
         for (let i = 0; i < profs.length; i++){
             let profId = profs[i];
-            const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName department courseCodes {courseName}  } } } `; 
+            let tempCourse = [];
+            const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName departmentId courseCodes {courseName} } } } `; 
             const variables = {id:profId};
             const response = await fetch (apiUrl, parameter("Basic dGVzdDp0ZXN0", query, variables));
             const data = await response.json();
@@ -220,11 +231,47 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             courseCodes.forEach(course => {
                 if (!unique.has(course.courseName)){
                     unique.add(course.courseName);
-                    courses.push(course.courseName);
+                    courses.push({'course' : course.courseName, 'dept':course.departmentId});
+                    tempCourse.push(course.courseName);
                 }
             })
         }
+
         setClasses(courses);
+    };
+
+    const getProfessorCourses = async () => {
+        const unique = new Set()
+        const profByDept = [];
+        for (let i = 0; i < profs.length; i++){
+            let profId = profs[i];
+            let tempCourse = [];
+
+            const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName departmentId courseCodes {courseName} avgRating } } } `; 
+            const variables = {id:profId};
+            const response = await fetch (apiUrl, parameter("Basic dGVzdDp0ZXN0", query, variables));
+            const data = await response.json();
+            const node = data.data.node;
+
+            const courseCodes = node.courseCodes;
+            courseCodes.forEach(course => {
+            if (!unique.has(course.courseName)){
+                    unique.add(course.courseName);
+                    tempCourse.push(course.courseName);
+                }
+            })
+
+            if (node.avgRating != 0 && pressed){
+                let fullName = `${node.firstName} ${node.lastName}`
+                let id = node.id
+                let rating = node.avgRating
+                let dept = node.departmentId
+                profByDept.push({'name': fullName, 'id': id, 'rating':rating, 'courses': tempCourse, 'dept': dept});
+                setPressed(false);
+            }
+        }
+
+        addProfs(profByDept);
     }
 
     useEffect(() => {
@@ -243,12 +290,14 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
         getCourses()
       }, [profs]);
 
+
       useEffect(() => {
         if (courses.length > 0){
             setShowBtn(true);
         }else{
             setShowBtn(false);
         }
+        getProfessorCourses()
       }, [courses])
 
       return (
@@ -265,7 +314,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                         <select id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
-                                <option key={index} value={clas}>{clas}</option>
+                                <option key={index} value={clas.course}>{clas.course}</option>
                             ))}
                         </select>
                         <button id="add-btn" onClick={addCourse}>+</button>
