@@ -74,7 +74,7 @@ const Form = () => {
 const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     const [_university, _setUniversity] = useState("");             // Value of input box, changes on input change
     const [options, setOptions] = useState([]);                     // Array of university name autocompletes
-    const [finalizedOption, setFinalizedOption] = useState(false);   // Boolean for if university option was chosen
+    const [finalizedOption, setFinalizedOption] = useState(false);  // Boolean for if university option was chosen
 
     const getUniversities = async(event) => {
         event.preventDefault();
