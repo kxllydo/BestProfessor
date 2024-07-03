@@ -70,7 +70,6 @@ const Form = () => {
     );
 }
 
-
 const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     const [_university, _setUniversity] = useState("");             // Value of input box, changes on input change
     const [options, setOptions] = useState([]);                     // Array of university name autocompletes
@@ -307,86 +306,6 @@ const Course = ({index, name, deleteFunction}) => {
     )
 }
 
-// const SelectProfessor = ({ university, courses }) => {
-//     let professorsData = [];
-//     let professorsResultCount = 0;
-
-//     const GetResultCountQuery = {
-//         "query": `query GetResultCount($query: TeacherSearchQuery!) {
-//             search: newSearch {
-//                 teachers(query: $query) {
-//                     resultCount
-//                 }
-//             }
-//         }`,
-//         "variables": {"query": {"schoolID": university}}
-//     };
-
-//     const GetProfessorsQuery = {
-//         "query": `query GetProfessors($query: TeacherSearchQuery!, $resultCount: Int!) {
-//             search: newSearch {
-//                 teachers(query: $query, first: $resultCount) {
-//                     edges {
-//                         node {
-//                             id
-//                             firstName
-//                             lastName
-//                             department
-//                             departmentId
-//                             avgRating
-
-//                             courseCodes {
-//                                 courseName
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }`,
-//         "variables": {"query": {"schoolID": university}, "resultCount": professorsResultCount}
-//     };
-
-//     useEffect(() => {
-//         fetch(apiUrl, parameter(`query GetProfessors($query: TeacherSearchQuery!, $cursor: String) {
-//             search: newSearch {
-//                 teachers(query: $query, first: 1, after: $cursor) {
-//                     pageInfo {
-//                         hasNextPage
-//                         endCursor
-//                     }
-
-//                     edges {
-//                         node {
-//                             id
-//                             firstName
-//                             lastName
-//                             department
-//                             departmentId
-//                             avgRating
-
-//                             courseCodes {
-//                                 courseName
-//                             }
-//                         }
-//                     }
-//                 }
-//             }
-//         }`, {"query": {"text": "", "schoolID": university}}))
-//         .then(response => response.json())
-//         .then(response => {
-//             // add to array
-
-//             professorsData.push(...response.data.search.teachers.edges);
-//         });
-//     }, [university])
-
-//     return (
-//        <div className = "general-container">
-//             <h1>Select Your Professors</h1>
-//        </div>
-//     )
-// }
-
 const SelectProfessor = ({}) => {
 
     return (
@@ -395,6 +314,5 @@ const SelectProfessor = ({}) => {
         </div>
     )
 }
-
 
 export default Form;
