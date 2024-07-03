@@ -78,5 +78,10 @@
     .choices#univ-choices {
       display: flex;
       margin: 3% 0px 0px 0px;
+
+      div.text-input.bubble {
+        gap: 2px;
+        padding-left: 8px;
+      }
     }
   }
