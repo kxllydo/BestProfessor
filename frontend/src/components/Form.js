@@ -65,10 +65,6 @@ const Form = () => {
         setLoaded(true);
     }
 
-    useEffect(() => {
-        console.log(courses);
-    }, [courses])
-
     return (
         <div id="form-container">
             <SelectUniversity handleUniversity={setUniversity}/>
@@ -99,13 +95,8 @@ const SelectUniversity = ({handleUniversity}) => {
             div.style.display = "flex";
         };
 
-        const query = "query SchoolSearchResultsPageQuery(\n  $query: SchoolSearchQuery!\n) {\n  search: newSearch {\n    ...SchoolSearchPagination_search_1ZLmLD\n  }\n}\n\nfragment SchoolSearchPagination_search_1ZLmLD on newSearch {\n  schools(query: $query, first: 8, after: \"\") {\n    edges {\n      cursor\n      node {\n        name\n        ...SchoolCard_school\n        id\n        __typename\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    resultCount\n  }\n}\n\nfragment SchoolCard_school on School {\n  legacyId\n  name\n  numRatings\n  avgRating\n  avgRatingRounded\n  ...SchoolCardHeader_school\n  ...SchoolCardLocation_school\n}\n\nfragment SchoolCardHeader_school on School {\n  name\n}\n\nfragment SchoolCardLocation_school on School {\n  city\n  state\n}\n";
-
-        const variables = {
-            query: {
-              text: univ
-            }
-        };
+        const query = `query SchoolSearchResultsPageQuery($query: SchoolSearchQuery!) { search: newSearch { schools(query: $query) { edges { node { id name } } } } } `;
+        const variables = {query: {text: univ}};
 
         try {
             const response = await fetch(apiUrl, parameter('Basic dGVzdDp0ZXN0', query, variables));
@@ -181,7 +172,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     }
 
     const getDepts = async() => {
-        const query = "query TeacherSearchResultsPageQuery(\n $query: TeacherSearchQuery!\n $schoolID: ID\n $includeSchoolFilter: Boolean!\n) {\n search: newSearch {\n ...TeacherSearchPagination_search_1ZLmLD\n }\n school: node(id: $schoolID) @include(if: $includeSchoolFilter) {\n __typename\n ... on School {\n name\n }\n id\n }\n}\n\nfragment TeacherSearchPagination_search_1ZLmLD on newSearch {\n teachers(query: $query, first: 8, after: \"\") {\n didFallback\n edges {\n cursor\n node {\n ...TeacherCard_teacher\n id\n __typename\n }\n }\n pageInfo {\n hasNextPage\n endCursor\n }\n resultCount\n filters {\n field\n options {\n value\n id\n }\n }\n }\n}\n\nfragment TeacherCard_teacher on Teacher {\n id\n legacyId\n avgRating\n numRatings\n ...CardFeedback_teacher\n ...CardSchool_teacher\n ...CardName_teacher\n ...TeacherBookmark_teacher\n}\n\nfragment CardFeedback_teacher on Teacher {\n wouldTakeAgainPercent\n avgDifficulty\n}\n\nfragment CardSchool_teacher on Teacher {\n department\n school {\n name\n id\n }\n}\n\nfragment CardName_teacher on Teacher {\n firstName\n lastName\n}\n\nfragment TeacherBookmark_teacher on Teacher {\n id\n isSaved\n}\n";
+        const query = `query TeacherSearchResultsPageQuery( $query: TeacherSearchQuery! $schoolID: ID $includeSchoolFilter: Boolean! ) { search: newSearch { teachers(query: $query, first: 8, after: "") { filters { options { value id } } } } school: node(id: $schoolID) @include(if: $includeSchoolFilter) { __typename ... on School { name } id } } `;
         const variables = {query: {text: "", schoolID: id, fallback: true, departmentID: null}, includeSchoolFilter:true, schoolID: id};
 
         const response = await fetch (apiUrl, parameter("Basic dGVzdDp0ZXN0", query, variables));
@@ -221,10 +212,9 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             cursor = hasNextPage ? teachersData.pageInfo.endCursor : null;
         }
         setProfs(professors);
-        console.log(professors);
     }
 
-    const getCourses2 = async() => {
+    const getCourses = async() => {
         const unique = new Set()
         const courses = [];
         for (let i = 0; i < profs.length; i++){
@@ -242,7 +232,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             })
         }
         setClasses(courses);
-        console.log(courses);
     }
 
     useEffect(() => {
@@ -258,7 +247,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
       }, [dept]);
 
       useEffect(() => {
-        getCourses2()
+        getCourses()
       }, [profs]);
 
       return (
@@ -310,6 +299,3 @@ const Course = ({index, name, deleteFunction}) => {
 
 
 export default Form;
-
-// "query SchoolSearchResultsPageQuery(  $query: SchoolSearchQuery!\n) {\n  search: newSearch {\n    ...SchoolSearchPagination_search_1ZLmLD\n  }\n}\n\nfragment SchoolSearchPagination_search_1ZLmLD on newSearch {\n  schools(query: $query, first: 8, after: \"\") {\n    edges {\n      cursor\n      node {\n        name\n        ...SchoolCard_school\n        id\n        __typename\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    resultCount\n  }\n}\n\nfragment SchoolCard_school on School {\n  legacyId\n  name\n  numRatings\n  avgRating\n  avgRatingRounded\n  ...SchoolCardHeader_school\n  ...SchoolCardLocation_school\n}\n\nfragment SchoolCardHeader_school on School {\n  name\n}\n\nfragment SchoolCardLocation_school on School {\n  city\n  state\n}\n"
-
