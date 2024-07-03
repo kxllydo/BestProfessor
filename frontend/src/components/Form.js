@@ -28,6 +28,7 @@ function capitalize(str) {
 const Form = () => {
     const [canInteract, setCanInteract] = useState(true);
     const [university, setUniversity] = useState("");
+    const [universityDataSet, setUniversityDataSet] = useState({});
     const [courses, setCourses] = useState([]);
 
     const setCourse = (event) => {
@@ -51,17 +52,19 @@ const Form = () => {
                 setUniversity = {setUniversity}/>
             
             {university &&
-                <SelectCourse 
+                <SelectCourse
+                    canInteract = {canInteract}
+                    setCanInteract = {setCanInteract}
+                    loaded = {true}
                     courses = {courses} 
                     add = {addCourse} 
                     deleteCourse = {deleteCourse} 
                     set = {setCourse} 
-                    id = {university}
-                    />
+                    id = {university}/>
             }
 
             {university && courses.length > 0 &&
-                <SelectProfessor school = {university} courses = {courses} />
+                <SelectProfessor university = {university} courses = {courses} />
             }
         </div>
     );
@@ -216,7 +219,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             cursor = hasNextPage ? teachersData.pageInfo.endCursor : null;
         }
         setProfs(professors);
-        console.log(professors);
+        // console.log(professors);
     }
 
     const getCourses2 = async() => {
@@ -237,7 +240,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             })
         }
         setClasses(courses);
-        console.log(courses);
+        // console.log(courses);
     }
 
     useEffect(() => {
@@ -256,29 +259,33 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
         getCourses2()
       }, [profs]);
 
-      return (
+
+    return (
         <div className="general-container">
             <h1>Select Your Courses</h1>
             {loaded && (
                 <div>
-                     <div className="text-input">
+                    <div className="text-input">
                         <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "">
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
-                                <option id={index} value={dept.value}>{dept.value}</option>
+                            <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
+
                         <select id="courses"  onChange={setCourse} defaultValue = "">
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
-                                <option key={index} value={clas}>{clas}</option>
+                            <option key={index} value={clas}>{clas}</option>
                             ))}
                         </select>
+
                         <button id="add-btn" onClick={addCourse}>+</button>
                     </div>
+
                     <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
                         {courses.map((course, index) => (
-                            <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
+                        <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
                         ))}
                     </div>
                 </div>
@@ -301,31 +308,82 @@ const Course = ({index, name, deleteFunction}) => {
     )
 }
 
-const SelectProfessor = ({ school, courses }) => {
-    const [a, b] = useState(3);
+const SelectProfessor = ({ university, courses }) => {
+    let professorsData = [];
+    let professorsResultCount = 0;
+
+    const GetResultCountQuery = {
+        "query": `query GetResultCount($query: TeacherSearchQuery!) {
+            search: newSearch {
+                teachers(query: $query) {
+                    resultCount
+                }
+            }
+        }`,
+        "variables": {"query": {"schoolID": university}}
+    };
+
+    const GetProfessorsQuery = {
+        "query": `query GetProfessors($query: TeacherSearchQuery!, $resultCount: Int!) {
+            search: newSearch {
+                teachers(query: $query, first: $resultCount) {
+                    edges {
+                        node {
+                            id
+                            firstName
+                            lastName
+                            department
+                            departmentId
+                            avgRating
+
+                            courseCodes {
+                                courseName
+                            }
+                        }
+                    }
+                }
+            }
+        }`,
+        "variables": {"query": {"schoolID": university}, "resultCount": professorsResultCount}
+    };
 
     useEffect(() => {
-        let query = `
-        
-        `;
+        fetch(apiUrl, parameter(`query GetProfessors($query: TeacherSearchQuery!, $cursor: String) {
+            search: newSearch {
+                teachers(query: $query, first: 1, after: $cursor) {
+                    pageInfo {
+                        hasNextPage
+                        endCursor
+                    }
 
-        let variables = {
-            "query": {
-                "school": school
+                    edges {
+                        node {
+                            id
+                            firstName
+                            lastName
+                            department
+                            departmentId
+                            avgRating
+
+                            courseCodes {
+                                courseName
+                            }
+                        }
+                    }
+                }
             }
-        };
+        }`, {"query": {"text": "", "schoolID": university}}))
+        .then(response => response.json())
+        .then(response => {
+            // add to array
 
-        fetch(apiUrl, parameter(query, variables))
-        .then(async response => {
-            console.log(await response.json());
-        })
-    }, [courses])
+            professorsData.push(...response.data.search.teachers.edges);
+        });
+    }, [university])
 
     return (
        <div className = "general-container">
             <h1>Select Your Professors</h1>
-
-            <h1> {a} </h1>
        </div>
     )
 }
@@ -359,7 +417,7 @@ fetch("https://www.ratemyprofessors.com/graphql", {
     "body": JSON.stringify({
         "query": `query askdjasjdsal($query: TeacherSearchQuery!, $cursor: String) {
             newSearch {
-                teachers(query: $query, first: 2, after: $cursor) {
+                teachers(query: $query, first: 1, after: $cursor) {
                     resultCount
 
                     pageInfo {
@@ -378,6 +436,7 @@ fetch("https://www.ratemyprofessors.com/graphql", {
 
                             courseCodes {
                                 courseName
+                                teacherId
                             }
                         }
                     }
@@ -386,9 +445,8 @@ fetch("https://www.ratemyprofessors.com/graphql", {
         }`,
         "variables": {
             "query": {
-                "text": "c",
+                "text": "",
                 "schoolID": "U2Nob29sLTE1MjE=",
-                "departmentID": "RGVwYXJ0bWVudC0zNA=="
             },
         }
     })
