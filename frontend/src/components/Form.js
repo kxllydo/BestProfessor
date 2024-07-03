@@ -79,13 +79,8 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     const getUniversities = async(event) => {
         event.preventDefault();
 
-        const query = "query SchoolSearchResultsPageQuery(\n  $query: SchoolSearchQuery!\n) {\n  search: newSearch {\n    ...SchoolSearchPagination_search_1ZLmLD\n  }\n}\n\nfragment SchoolSearchPagination_search_1ZLmLD on newSearch {\n  schools(query: $query, first: 8, after: \"\") {\n    edges {\n      cursor\n      node {\n        name\n        ...SchoolCard_school\n        id\n        __typename\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n    resultCount\n  }\n}\n\nfragment SchoolCard_school on School {\n  legacyId\n  name\n  numRatings\n  avgRating\n  avgRatingRounded\n  ...SchoolCardHeader_school\n  ...SchoolCardLocation_school\n}\n\nfragment SchoolCardHeader_school on School {\n  name\n}\n\nfragment SchoolCardLocation_school on School {\n  city\n  state\n}\n";
-
-        const variables = {
-            query: {
-              text: _university
-            }
-        };
+        const query = `query SchoolSearchResultsPageQuery($query: SchoolSearchQuery!) { search: newSearch { schools(query: $query) { edges { node { id name } } } } } `;
+        const variables = {query: {text: univ}};
 
         try {
             setCanInteract(false);
@@ -163,6 +158,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     const [classes, setClasses] = useState([]);
     const [course, setCours] = useState("");
     const [profs, setProfs] = useState([]);
+    const [showBtn, setShowBtn] = useState(false);
 
     const setCourse = (event) => {
         setCours(event.target.value);
@@ -179,7 +175,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
     }
 
     const getDepts = async() => {
-        const query = "query TeacherSearchResultsPageQuery(\n $query: TeacherSearchQuery!\n $schoolID: ID\n $includeSchoolFilter: Boolean!\n) {\n search: newSearch {\n ...TeacherSearchPagination_search_1ZLmLD\n }\n school: node(id: $schoolID) @include(if: $includeSchoolFilter) {\n __typename\n ... on School {\n name\n }\n id\n }\n}\n\nfragment TeacherSearchPagination_search_1ZLmLD on newSearch {\n teachers(query: $query, first: 8, after: \"\") {\n didFallback\n edges {\n cursor\n node {\n ...TeacherCard_teacher\n id\n __typename\n }\n }\n pageInfo {\n hasNextPage\n endCursor\n }\n resultCount\n filters {\n field\n options {\n value\n id\n }\n }\n }\n}\n\nfragment TeacherCard_teacher on Teacher {\n id\n legacyId\n avgRating\n numRatings\n ...CardFeedback_teacher\n ...CardSchool_teacher\n ...CardName_teacher\n ...TeacherBookmark_teacher\n}\n\nfragment CardFeedback_teacher on Teacher {\n wouldTakeAgainPercent\n avgDifficulty\n}\n\nfragment CardSchool_teacher on Teacher {\n department\n school {\n name\n id\n }\n}\n\nfragment CardName_teacher on Teacher {\n firstName\n lastName\n}\n\nfragment TeacherBookmark_teacher on Teacher {\n id\n isSaved\n}\n";
+        const query = `query TeacherSearchResultsPageQuery( $query: TeacherSearchQuery! $schoolID: ID $includeSchoolFilter: Boolean! ) { search: newSearch { teachers(query: $query, first: 8, after: "") { filters { options { value id } } } } school: node(id: $schoolID) @include(if: $includeSchoolFilter) { __typename ... on School { name } id } } `;
         const variables = {query: {text: "", schoolID: id, fallback: true, departmentID: null}, includeSchoolFilter:true, schoolID: id};
 
         const response = await fetch (apiUrl, parameter(query, variables));
@@ -219,10 +215,9 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             cursor = hasNextPage ? teachersData.pageInfo.endCursor : null;
         }
         setProfs(professors);
-        // console.log(professors);
     }
 
-    const getCourses2 = async() => {
+    const getCourses = async() => {
         const unique = new Set()
         const courses = [];
         for (let i = 0; i < profs.length; i++){
@@ -240,7 +235,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
             })
         }
         setClasses(courses);
-        // console.log(courses);
     }
 
     useEffect(() => {
@@ -256,24 +250,29 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
       }, [dept]);
 
       useEffect(() => {
-        getCourses2()
+        getCourses()
       }, [profs]);
 
+      useEffect(() => {
+        if (courses.length > 0){
+            setShowBtn(true);
+        }else{
+            setShowBtn(false);
+        }
+      }, [courses])
 
-    return (
+      return (
         <div className="general-container">
             <h1>Select Your Courses</h1>
-            {loaded && (
                 <div>
-                    <div className="text-input">
-                        <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "">
+                     <div className="text-input">
+                        <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
                             <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
-
-                        <select id="courses"  onChange={setCourse} defaultValue = "">
+                        <select id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                             <option key={index} value={clas}>{clas}</option>
@@ -288,8 +287,8 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded}) => 
                         <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
                         ))}
                     </div>
+                    {showBtn && (<button class="btn" id = "course-submit-btn" style={{marginTop: '2%', paddingTop: '6px', paddingBottom: '6px'}}>Submit</button>)}
                 </div>
-            )}
         </div>
     );
 };
@@ -399,6 +398,7 @@ const SelectProfessor = ({}) => {
 
 
 export default Form;
+<<<<<<< HEAD
 
 
 /*
@@ -463,3 +463,5 @@ fetch("https://www.ratemyprofessors.com/graphql", {
 .then(async response => { 
     console.log(await response.json());
 });
+=======
+>>>>>>> ce458a596d356454fa0aa25a15be63f079477b0d
