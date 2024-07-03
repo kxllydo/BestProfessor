@@ -80,7 +80,7 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
         event.preventDefault();
 
         const query = `query SchoolSearchResultsPageQuery($query: SchoolSearchQuery!) { search: newSearch { schools(query: $query) { edges { node { id name } } } } } `;
-        const variables = {query: {text: univ}};
+        const variables = {query: {text: _university}};
 
         try {
             setCanInteract(false);
