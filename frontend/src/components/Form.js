@@ -27,9 +27,10 @@ function capitalize(str) {
 
 const Form = () => {
     const [canInteract, setCanInteract] = useState(true);
-    const [university, setUniversity] = useState("");
-    const [profByDept, setProfByDept] = useState([]);
-    const [courses, setCourses] = useState([]);
+
+    const [university, setUniversity] = useState("");   // Base64 encoded string of university ID
+    const [profByDept, setProfByDept] = useState([]);   //
+    const [courses, setCourses] = useState([]);         // 
 
     const addCourse = (course) => {
         setCourses((prevCourses) => [...prevCourses, course]);
@@ -151,6 +152,33 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
             }
         </div>
     )
+}
+
+const SelectCourse2 = ({ canInteract, setCanInteract, university }) => {
+    const [departments, setDepartments] = useState([]);
+    const [department, setDepartment] = useState("");
+
+    const [courses, setCourses] = useState([]);
+    const [chosenCourses, setChosenCourses] = useState([]);
+
+    return (
+        <div className = "general-container">
+            <h1>Select Your Courses</h1>
+
+            <div className = "text-input">
+                {
+                    canInteract &&
+                        (<></>)
+                    ||
+                        (<></>)
+                }
+            </div>
+
+            <div className = "choices">
+                
+            </div>            
+        </div>
+    );
 }
 
 const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
