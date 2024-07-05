@@ -186,13 +186,14 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState({});
     const [classes, setClasses] = useState([]);
-    const [course, setCours] = useState("");
+    const [course, setCours] = useState({});
     const [profs, setProfs] = useState([]);
     const [showBtn, setShowBtn] = useState(false);
     const [pressed, setPressed] = useState(false);
 
     const setCourse = (event) => {
-        setCours(event.target.value);
+        const index = event.target.options[event.target.selectedIndex].getAttribute('id')
+        setCours(classes[index]);
     };
 
     const setDepartment = (event) => {
@@ -269,7 +270,6 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
                 }
             })
         }
-
         setClasses(courses);
     };
 
@@ -347,7 +347,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
                         <select id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
-                                <option data-dept = {clas} key={index} value={clas.course}>{clas.course}</option>
+                                <option id={index} value={clas.course}>{clas.course}</option>
                             ))}
                         </select>
 
@@ -356,7 +356,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
 
                     <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
                         {courses.map((course, index) => (
-                        <Course key={index} index={index} name={course} deleteFunction={() => deleteCourse(index)} />
+                        <Course key={index} index={index} name={course.course} deleteFunction={() => deleteCourse(index)} />
                         ))}
                     </div>
                     {showBtn && (<button class="btn" id = "course-submit-btn" style={{marginTop: '2%', paddingTop: '6px', paddingBottom: '6px'}}>Submit</button>)}
