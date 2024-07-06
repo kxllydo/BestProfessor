@@ -21,10 +21,6 @@ const parameter = (query, variables) => {
     };
 };
 
-function capitalize(str) {
-    return str.replace(/\b\w/g, char => char.toUpperCase());
-}
-
 const Form = () => {
     const [canInteract, setCanInteract] = useState(true);
 
@@ -195,6 +191,8 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
     const [profs, setProfs] = useState([]);
     const [showBtn, setShowBtn] = useState(false);
     const [pressed, setPressed] = useState(false);
+
+    const capitalize = str => str.replace(/\b\w/g, char => char.toUpperCase());
 
     const setCourse = (event) => {
         const index = event.target.options[event.target.selectedIndex].getAttribute('id')
