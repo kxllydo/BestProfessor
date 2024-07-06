@@ -142,47 +142,10 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
                 </>
             }
         </div>
-
-        // <div className = "general-container">
-        //     <h1>
-        //         {!finalizedOption && "Select University" || "University Name: " + _university}
-        //     </h1>
-
-        //     {!finalizedOption &&
-        //         (<>
-        //             <div className = "text-input" id = "select-university">
-        //                 <label htmlFor = "school">University Name:</label>
-
-        //                 {canInteract &&
-        //                     (<>
-        //                         <input type = "text" onChange = {event => _setUniversity(event.target.value)} />
-        //                         <button className = "btn" type = "submit" onClick = {getUniversities}>Search</button>
-        //                     </>)
-        //                 ||
-        //                     (<>
-        //                         <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled />
-        //                         <button className = "btn" type = "submit" onClick = {getUniversities} disabled>Search</button>
-        //                     </>)
-        //                 }
-        //             </div>
-                    
-        //             <div className = "choices" id = "univ-choices">
-        //                 {
-        //                     options.map((option, index) => (
-        //                         <div key = {index} className = "text-input bubble">
-        //                             <input type = "radio" id = {index} value = {option.name} name = "univ-name" onClick = {chooseUniversity}></input>
-        //                             <label htmlFor = {option.name}>{option.name}</label>
-        //                         </div>
-        //                     ))
-        //                 }
-        //             </div>
-        //         </>)
-        //     }
-        // </div>
     )
 }
 
-const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
+const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState({});
@@ -206,8 +169,11 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
 
     const addCourse = (event) => {
         event.preventDefault();
-        add(course);
-        setPressed(true);
+        if (Object.keys(course).length > 0) {
+            console.log(course);
+            add(course);
+            setPressed(true);
+        }
     }
 
     const getDepts = async() => {
@@ -226,14 +192,18 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
         }
         setDepts(departments);
     }
-
    
     const getProfessorByDept = async(deptId) => {
+        if (!deptId) // why is this running infinitely without a deptId???
+            return;
+
+        setCanInteract(false);
         let professors = [];
         let hasNextPage = true;
         let cursor = null;
         const count = 8;
         while (hasNextPage) {
+            console.log(deptId);
             const query = ` query TeacherSearchPaginationQuery($count: Int!, $cursor: String, $query: TeacherSearchQuery!) { search: newSearch { ...TeacherSearchPagination_search_1jWD3d } } fragment TeacherSearchPagination_search_1jWD3d on newSearch { teachers(query: $query, first: $count, after: $cursor) { didFallback edges { cursor node { ...TeacherCard_teacher id __typename } } pageInfo { hasNextPage endCursor } resultCount filters { field options { value id } } } } fragment TeacherCard_teacher on Teacher { id legacyId avgRating numRatings ...CardFeedback_teacher ...CardSchool_teacher ...CardName_teacher ...TeacherBookmark_teacher } fragment CardFeedback_teacher on Teacher { wouldTakeAgainPercent avgDifficulty } fragment CardSchool_teacher on Teacher { department school { name id } } fragment CardName_teacher on Teacher { firstName lastName } fragment TeacherBookmark_teacher on Teacher { id isSaved }`;
     
             const variables = {count: count, cursor: cursor, query: {text: '', schoolID: id, fallback: true, departmentID: deptId}};
@@ -242,6 +212,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
             const data = await response.json();
     
             if (data.errors) {
+                setCanInteract(true);
                 throw new Error(`GraphQL query failed with errors: ${JSON.stringify(data.errors)}`);
             }
     
@@ -274,6 +245,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
             })
         }
         setClasses(courses);
+        setCanInteract(true);
     };
 
     const getProfessorCourses = async () => {
@@ -341,20 +313,20 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
             <h1>Select Your Courses</h1>
                 <div>
                      <div className="text-input">
-                        <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "" style={{borderRadius: '12px'}}>
+                        <select disabled = {!canInteract} id="dept1" name="depts" onChange={setDepartment} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
                             <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
-                        <select id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
+                        <select disabled = {!canInteract} id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                                 <option id={index} value={clas.course}>{clas.course}</option>
                             ))}
                         </select>
 
-                        <button id="add-btn" onClick={addCourse}>+</button>
+                        <button disabled = {!canInteract} id="add-btn" onClick={addCourse}>+</button>
                     </div>
 
                     <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
