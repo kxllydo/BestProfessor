@@ -145,6 +145,20 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     )
 }
 
+const Course = ({index, name, deleteFunction}) => {
+    const onDelete = (event) =>{
+        event.preventDefault();
+        deleteFunction();
+    }
+
+    return (
+    <div id = {`course${index}`} className = "bubble">
+        <p style={{margin:"0px"}}>{name}</p>
+        <button onClick={onDelete} className="remove-btn">x</button>
+    </div>
+    )
+}
+
 const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
@@ -170,7 +184,6 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
     const addCourse = (event) => {
         event.preventDefault();
         if (Object.keys(course).length > 0) {
-            console.log(course);
             add(course);
             setPressed(true);
         }
@@ -203,7 +216,6 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
         let cursor = null;
         const count = 8;
         while (hasNextPage) {
-            console.log(deptId);
             const query = ` query TeacherSearchPaginationQuery($count: Int!, $cursor: String, $query: TeacherSearchQuery!) { search: newSearch { ...TeacherSearchPagination_search_1jWD3d } } fragment TeacherSearchPagination_search_1jWD3d on newSearch { teachers(query: $query, first: $count, after: $cursor) { didFallback edges { cursor node { ...TeacherCard_teacher id __typename } } pageInfo { hasNextPage endCursor } resultCount filters { field options { value id } } } } fragment TeacherCard_teacher on Teacher { id legacyId avgRating numRatings ...CardFeedback_teacher ...CardSchool_teacher ...CardName_teacher ...TeacherBookmark_teacher } fragment CardFeedback_teacher on Teacher { wouldTakeAgainPercent avgDifficulty } fragment CardSchool_teacher on Teacher { department school { name id } } fragment CardName_teacher on Teacher { firstName lastName } fragment TeacherBookmark_teacher on Teacher { id isSaved }`;
     
             const variables = {count: count, cursor: cursor, query: {text: '', schoolID: id, fallback: true, departmentID: deptId}};
@@ -339,25 +351,13 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
         </div>
     );
 }
-    
-const Course = ({index, name, deleteFunction}) => {
-    const onDelete = (event) =>{
-        event.preventDefault();
-        deleteFunction();
-    }
-
-    return (
-    <div id = {`course${index}`} className = "bubble">
-        <p style={{margin:"0px"}}>{name}</p>
-        <button onClick={onDelete} className="remove-btn">x</button>
-    </div>
-    )
-}
 
 const SelectProfessor = ({ dataSet, courses }) => {
 
     useEffect(() => {
+        console.log("Course Array");
         console.log(courses);
+        console.log("Data Set Array");
         console.log(dataSet);
     }, [courses]);
 
