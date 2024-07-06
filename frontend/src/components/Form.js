@@ -79,6 +79,11 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     const [options, setOptions] = useState([]);                     // Array of university name autocompletes
     const [finalizedOption, setFinalizedOption] = useState(false);  // Boolean for if university option was chosen
 
+    const handleUnivInputChange = (event) => {
+        event.preventDefault();
+        _setUniversity(event.target.value);
+    }
+
     const getUniversities = async(event) => {
         event.preventDefault();
 
@@ -116,69 +121,69 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
 
     return (
         <div className = "general-container">
-            <h1>
-                {!finalizedOption && "Select University" || "University Name: " + _university}
-            </h1>
+            <h1>Select University</h1>
 
-            {!finalizedOption &&
-                (<>
+            {finalizedOption &&
+                <div>{_university}</div>
+            ||
+                <>
                     <div className = "text-input" id = "select-university">
-                        <label htmlFor = "school">University Name:</label>
-
-                        {canInteract &&
-                            (<>
-                                <input type = "text" onChange = {event => _setUniversity(event.target.value)} />
-                                <button className = "btn" type = "submit" onClick = {getUniversities}>Search</button>
-                            </>)
-                        ||
-                            (<>
-                                <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled />
-                                <button className = "btn" type = "submit" onClick = {getUniversities} disabled>Search</button>
-                            </>)
-                        }
+                        <label htmlFor = "school">University Name: </label>
+                        <input type = "text" onChange = {handleUnivInputChange} disabled = {!canInteract} />
+                        <button className = "btn" type = "submit" onClick = {getUniversities} disabled = {!canInteract}>Search</button>
                     </div>
-                    
+
                     <div className = "choices" id = "univ-choices">
                         {
                             options.map((option, index) => (
                                 <div key = {index} className = "text-input bubble">
-                                    <input type = "radio" id = {index} value = {option.name} name = "univ-name" onClick = {chooseUniversity}></input>
-                                    <label htmlFor = {option.name}>{option.name}</label>
+                                    <input type = "radio" id = {index} value = {option.name} name = "univ-name" onClick = {chooseUniversity} />
+                                    <label htmlFor = {option.name}>{option.name}</label>                                    
                                 </div>
                             ))
                         }
                     </div>
-                </>)
+                </>
             }
         </div>
+
+        // <div className = "general-container">
+        //     <h1>
+        //         {!finalizedOption && "Select University" || "University Name: " + _university}
+        //     </h1>
+
+        //     {!finalizedOption &&
+        //         (<>
+        //             <div className = "text-input" id = "select-university">
+        //                 <label htmlFor = "school">University Name:</label>
+
+        //                 {canInteract &&
+        //                     (<>
+        //                         <input type = "text" onChange = {event => _setUniversity(event.target.value)} />
+        //                         <button className = "btn" type = "submit" onClick = {getUniversities}>Search</button>
+        //                     </>)
+        //                 ||
+        //                     (<>
+        //                         <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled />
+        //                         <button className = "btn" type = "submit" onClick = {getUniversities} disabled>Search</button>
+        //                     </>)
+        //                 }
+        //             </div>
+                    
+        //             <div className = "choices" id = "univ-choices">
+        //                 {
+        //                     options.map((option, index) => (
+        //                         <div key = {index} className = "text-input bubble">
+        //                             <input type = "radio" id = {index} value = {option.name} name = "univ-name" onClick = {chooseUniversity}></input>
+        //                             <label htmlFor = {option.name}>{option.name}</label>
+        //                         </div>
+        //                     ))
+        //                 }
+        //             </div>
+        //         </>)
+        //     }
+        // </div>
     )
-}
-
-const SelectCourse2 = ({ canInteract, setCanInteract, university }) => {
-    const [departments, setDepartments] = useState([]);
-    const [department, setDepartment] = useState("");
-
-    const [courses, setCourses] = useState([]);
-    const [chosenCourses, setChosenCourses] = useState([]);
-
-    return (
-        <div className = "general-container">
-            <h1>Select Your Courses</h1>
-
-            <div className = "text-input">
-                {
-                    canInteract &&
-                        (<></>)
-                    ||
-                        (<></>)
-                }
-            </div>
-
-            <div className = "choices">
-                
-            </div>            
-        </div>
-    );
 }
 
 const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
@@ -383,11 +388,18 @@ const SelectProfessor = ({ dataSet, courses }) => {
 
     useEffect(() => {
         console.log(courses);
+        console.log(dataSet);
     }, [courses]);
 
     return (
         <div className = "general-container">
             <h1>Select Your Professor</h1>
+
+            {
+                courses.map((a, i) => {
+                    <div>{a}</div>
+                })
+            }
         </div>
     )
 }
