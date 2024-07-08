@@ -25,7 +25,7 @@ function capitalize(str) {
     return str.replace(/\b\w/g, char => char.toUpperCase());
 }
 
-const Form = () => {
+const Form = () => { 
     const [canInteract, setCanInteract] = useState(true);
     const [university, setUniversity] = useState("");   // Base64 encoded string of university ID
     const [profByDept, setProfByDept] = useState([]);   //
@@ -44,6 +44,11 @@ const Form = () => {
         setProfByDept((prevProfs) => [...prevProfs, profs]);
     }
 
+    const deleteProfByDept = (index) => {
+        const updatedProfs = profByDept.filter((prof, i) => i != index);
+        setProfByDept(updatedProfs);
+    }
+
     return (
         <div id="form-container">
             <SelectUniversity 
@@ -60,12 +65,12 @@ const Form = () => {
                     add = {addCourse} 
                     deleteCourse = {deleteCourse}
                     id = {university}
-                    addProfs = {addProfByDept}/>
+                    addProfs = {addProfByDept}
+                    delProfs = {deleteProfByDept}/>
             }
 
             {university && courses.length > 0 &&
                 <SelectProfessor 
-                    university = {university} 
                     courses = {courses} 
                     dataSet = {profByDept}/>
             }
@@ -123,18 +128,8 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
                 (<>
                     <div className = "text-input" id = "select-university">
                         <label htmlFor = "school">University Name:</label>
-
-                        {canInteract &&
-                            (<>
-                                <input type = "text" onChange = {event => _setUniversity(event.target.value)} />
-                                <button className = "btn" type = "submit" onClick = {getUniversities}>Search</button>
-                            </>)
-                        ||
-                            (<>
-                                <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled />
-                                <button className = "btn" type = "submit" onClick = {getUniversities} disabled>Search</button>
-                            </>)
-                        }
+                        <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled = {!canInteract}/>
+                        <button className = "btn" type = "submit" onClick = {getUniversities} disabled = {!canInteract}>Search</button>
                     </div>
                     
                     <div className = "choices" id = "univ-choices">
@@ -153,34 +148,7 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     )
 }
 
-const SelectCourse2 = ({ canInteract, setCanInteract, university }) => {
-    const [departments, setDepartments] = useState([]);
-    const [department, setDepartment] = useState("");
-
-    const [courses, setCourses] = useState([]);
-    const [chosenCourses, setChosenCourses] = useState([]);
-
-    return (
-        <div className = "general-container">
-            <h1>Select Your Courses</h1>
-
-            <div className = "text-input">
-                {
-                    canInteract &&
-                        (<></>)
-                    ||
-                        (<></>)
-                }
-            </div>
-
-            <div className = "choices">
-                
-            </div>            
-        </div>
-    );
-}
-
-const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
+const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs, delProfs}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState({});
@@ -363,7 +331,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
 
                     <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
                         {courses.map((course, index) => (
-                        <Course key={index} index={index} name={course.course} deleteFunction={() => deleteCourse(index)} />
+                        <Course key={index} index={index} name={course.course} deleteFunction={() => {deleteCourse(index); delProfs(index + 2);}} />
                         ))}
                     </div>
                     {showBtn && (<button class="btn" id = "course-submit-btn" style={{marginTop: '2%', paddingTop: '6px', paddingBottom: '6px'}}>Submit</button>)}
@@ -387,15 +355,68 @@ const Course = ({index, name, deleteFunction}) => {
 }
 
 const SelectProfessor = ({ dataSet, courses }) => {
+    const [coursesTopProfs, setCoursesTopProfs] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+
+    const professorSortFunction = (self, other) => {
+        if (self.rating > other.rating)
+            return -1;
+        else if (self.rating < other.rating)
+            return 1;
+        return 0;
+    }
 
     useEffect(() => {
-        // console.log(courses);
-        // console.log(dataSet);
-    }, [courses]);
+        if (dataSet.length < 3)
+            return;
+
+        setIsLoading(true);
+        const tempCoursesTopProfs = {};
+
+        for (let i = 0; i < courses.length; i++) {
+            console.log(dataSet[i + 2]);
+            
+            let topProfsForCourse = dataSet[i + 2].filter(professor => professor.courses.includes(courses[i].course));
+            topProfsForCourse.sort(professorSortFunction);
+            tempCoursesTopProfs[courses[i].course] = topProfsForCourse;
+        }
+
+        setCoursesTopProfs(tempCoursesTopProfs);
+        setIsLoading(false);
+    }, [dataSet]);
 
     return (
         <div className = "general-container">
             <h1>Select Your Professor</h1>
+
+            <div className = "text-input">
+                <table>
+                    <tbody>
+                        {!isLoading && Object.keys(coursesTopProfs).length > 0 &&
+                            Object.keys(coursesTopProfs).map((course, index) => (
+                                <tr key = {index}>
+                                    <td className = "course-col">{course}</td>
+                                    <td className = "profs-col">
+                                        {
+                                            coursesTopProfs[course].map((prof, index2) => (
+                                                <span key = {index2} className = "bubble">
+                                                    <p style = {{margin: "0px"}}>
+                                                        <a href = {"https://www.ratemyprofessors.com/professor/" + atob(prof.id).split("-")[1]} target = "_blank">
+                                                            {prof.name}
+                                                        </a>
+                                                    </p>
+                                                </span>
+                                            ))
+                                        }
+                                    </td>
+                                </tr>
+                            ))
+                        ||
+                            <div> ... Loading Wheel ... </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }
