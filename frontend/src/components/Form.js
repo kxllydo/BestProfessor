@@ -129,18 +129,8 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
                 (<>
                     <div className = "text-input" id = "select-university">
                         <label htmlFor = "school">University Name:</label>
-
-                        {canInteract &&
-                            (<>
-                                <input type = "text" onChange = {event => _setUniversity(event.target.value)} />
-                                <button className = "btn" type = "submit" onClick = {getUniversities}>Search</button>
-                            </>)
-                        ||
-                            (<>
-                                <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled />
-                                <button className = "btn" type = "submit" onClick = {getUniversities} disabled>Search</button>
-                            </>)
-                        }
+                        <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled = {!canInteract}/>
+                        <button className = "btn" type = "submit" onClick = {getUniversities} disabled = {!canInteract}>Search</button>
                     </div>
                     
                     <div className = "choices" id = "univ-choices">
@@ -377,9 +367,8 @@ const SelectProfessor = ({ dataSet, courses }) => {
         const tempCoursesTopProfs = {};
 
         for (let i = 0; i < courses.length; i++) {
-            console.log("COURSE: " + courses[i].course);
-            console.log("DATASET: ");
             console.log(dataSet[i + 2]);
+            
             let topProfsForCourse = dataSet[i + 2].filter(professor => professor.courses.includes(courses[i].course));
             topProfsForCourse.sort(professorSortFunction);
             tempCoursesTopProfs[courses[i].course] = topProfsForCourse;
