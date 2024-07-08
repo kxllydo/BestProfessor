@@ -24,7 +24,7 @@ const parameter = (query, variables) => {
 const Form = () => {
     const [canInteract, setCanInteract] = useState(true);
 
-    const [university, setUniversity] = useState("");   // Base64 encoded string of university ID
+    const [university, setUniversity] = useState("");   // university object
     const [profByDept, setProfByDept] = useState([]);   //
     const [courses, setCourses] = useState([]);         // 
 
@@ -49,6 +49,13 @@ const Form = () => {
                 setUniversity = {setUniversity}/>
             
             {university &&
+                <SelectCourse2
+                    canInteract = {canInteract}
+                    setCanInteract = {setCanInteract}
+                    university = {university.name}/>
+            }
+
+            {/* {university &&
                 <SelectCourse
                     canInteract = {canInteract}
                     setCanInteract = {setCanInteract}
@@ -58,7 +65,7 @@ const Form = () => {
                     deleteCourse = {deleteCourse}
                     id = {university}
                     addProfs = {addProfByDept}/>
-            }
+            } */}
 
             {university && courses.length > 0 &&
                 <SelectProfessor 
@@ -71,20 +78,20 @@ const Form = () => {
 }
 
 const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
-    const [_university, _setUniversity] = useState("");             // Value of input box, changes on input change
-    const [options, setOptions] = useState([]);                     // Array of university name autocompletes
-    const [finalizedOption, setFinalizedOption] = useState(false);  // Boolean for if university option was chosen
+    const [universityInputValue, setUniversityInputValue] = useState("");   // Value of input box, changes on input change
+    const [options, setOptions] = useState([]);                             // Array of university name autocompletes
+    const [finalizedOption, setFinalizedOption] = useState(false);          // Boolean for if university option was chosen
 
     const handleUnivInputChange = (event) => {
         event.preventDefault();
-        _setUniversity(event.target.value);
+        setUniversityInputValue(event.target.value);
     }
 
     const getUniversities = async(event) => {
         event.preventDefault();
 
         const query = `query SchoolSearchResultsPageQuery($query: SchoolSearchQuery!) { search: newSearch { schools(query: $query) { edges { node { id name } } } } } `;
-        const variables = {query: {text: _university}};
+        const variables = {query: {text: universityInputValue}};
 
         try {
             setCanInteract(false);
@@ -109,9 +116,9 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
         const index = event.target.id;
         const chosen = options[index];
 
-        _setUniversity(chosen.name);
+        setUniversityInputValue(chosen.name);
         setFinalizedOption(true);
-        setUniversity(chosen.id);
+        setUniversity(chosen);
         setOptions([]);
     }
 
@@ -120,7 +127,7 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
             <h1>Select University</h1>
 
             {finalizedOption &&
-                <div>{_university}</div>
+                <div>{universityInputValue}</div>
             ||
                 <>
                     <div className = "text-input" id = "select-university">
@@ -152,11 +159,89 @@ const Course = ({index, name, deleteFunction}) => {
     }
 
     return (
-    <div id = {`course${index}`} className = "bubble">
-        <p style={{margin:"0px"}}>{name}</p>
-        <button onClick={onDelete} className="remove-btn">x</button>
-    </div>
+        <div id = {`course${index}`} className = "bubble">
+            <p style={{margin:"0px"}}>{name}</p>
+            <button onClick={onDelete} className="remove-btn">x</button>
+        </div>
     )
+}
+
+const SelectCourse2 = ({ canInteract, setCanInteract, university }) => {
+    const [departments, setDepartments] = useState([]);
+    const [department, setDepartment] = useState([]);
+    const [coursesInDepartment, setCoursesInDepartment] = useState([]);
+
+    const getDepartments = async () => {
+        const query = `
+            query DepartmentsQuery($query: SchoolSearchQuery!) {
+                search: newSearch {
+                    schools(query: $query) {
+                        edges {
+                            node {
+                                departments {
+                                    id
+                                    name
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        `;
+        const variables = {query: {text: university}};
+
+        setCanInteract(false);
+        const response = await fetch(apiUrl, parameter(query, variables));
+        const data = await response.json();
+
+        setDepartments(data.data.search.schools.edges[0].node.departments);
+        setCanInteract(true);
+    }
+
+    const handleSelectDepartment = (event) => {
+        const index = event.target.options[event.target.selectedIndex].getAttribute("value");
+        setDepartment(departments[index]);
+    }
+
+    const getCoursesInDepartment = () => {
+
+    }
+
+    useEffect(() => {
+        getDepartments();
+    }, [university]);
+
+    useEffect(() => {
+        getCoursesInDepartment();
+    }, [department]);
+
+    return (
+        <div className = "general-container">
+            <h1>Select Your Courses</h1>
+
+            <div className = "text-input">
+                <select id = "dept1" name = "depts" onChange = {handleSelectDepartment} defaultValue = "" style = {{borderRadius: "12px"}} disabled = {!canInteract}>
+                    <option value = "" disabled>Department</option>
+                    {
+                        departments.map((dept, index) => (
+                            <option key = {index} value = {dept.id}>{dept.name}</option>
+                        ))
+                    }
+                </select>
+
+                <select id = "courses" onChange = {() => {}} defaultValue = "" style = {{borderRadius: "12px"}} disabled = {!canInteract}>
+                    <option value = "" disabled>Courses</option>
+                    {/* TODO: map courses */}
+                </select>
+
+                <button id = "add-btn" onClick = {() => {}} disabled = {!canInteract}>+</button>
+            </div>
+
+            <div className = "options" style = {{margin: "2.5% 25% 0 25%"}}>
+                {/* TODO: map courses */}
+            </div>
+        </div>
+    );
 }
 
 const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
@@ -346,7 +431,6 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
                         <Course key={index} index={index} name={course.course} deleteFunction={() => deleteCourse(index)} />
                         ))}
                     </div>
-                    {showBtn && (<button class="btn" id = "course-submit-btn" style={{marginTop: '2%', paddingTop: '6px', paddingBottom: '6px'}}>Submit</button>)}
                 </div>
         </div>
     );
