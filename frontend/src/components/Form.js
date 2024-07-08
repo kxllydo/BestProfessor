@@ -367,6 +367,7 @@ const SelectProfessor = ({ dataSet, courses }) => {
         const tempCoursesTopProfs = {};
 
         for (let i = 0; i < courses.length; i++) {
+            console.log(courses[i].course);
             console.log(dataSet[i + 2]);
             
             let topProfsForCourse = dataSet[i + 2].filter(professor => professor.courses.includes(courses[i].course));
@@ -385,7 +386,7 @@ const SelectProfessor = ({ dataSet, courses }) => {
             <div className = "text-input">
                 <table>
                     <tbody>
-                        {!isLoading && Object.keys(coursesTopProfs).length > 0 &&
+                        {Object.keys(coursesTopProfs).length > 0 &&
                             Object.keys(coursesTopProfs).map((course, index) => (
                                 <tr key = {index}>
                                     <td className = "course-col">{course}</td>
@@ -404,9 +405,9 @@ const SelectProfessor = ({ dataSet, courses }) => {
                                     </td>
                                 </tr>
                             ))
-                        ||
-                            <div> ... Loading Wheel ... </div>
                         }
+
+                        { isLoading && <tr><h2>... Loading wheel ...</h2></tr> }
                     </tbody>
                 </table>
             </div>
