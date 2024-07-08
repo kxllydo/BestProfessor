@@ -356,7 +356,6 @@ const Course = ({index, name, deleteFunction}) => {
 
 const SelectProfessor = ({ dataSet, courses }) => {
     const [coursesTopProfs, setCoursesTopProfs] = useState({});
-    const [isLoading, setIsLoading] = useState(false);
 
     const professorSortFunction = (self, other) => {
         if (self.rating > other.rating)
@@ -370,7 +369,6 @@ const SelectProfessor = ({ dataSet, courses }) => {
         if (dataSet.length < 3)
             return;
 
-        setIsLoading(true);
         const tempCoursesTopProfs = {};
 
         for (let i = 0; i < courses.length; i++) {
@@ -385,7 +383,6 @@ const SelectProfessor = ({ dataSet, courses }) => {
         }
 
         setCoursesTopProfs(tempCoursesTopProfs);
-        setIsLoading(false);
     }, [dataSet]);
 
     return (
@@ -415,8 +412,6 @@ const SelectProfessor = ({ dataSet, courses }) => {
                                 </tr>
                             ))
                         }
-
-                        { isLoading && <tr><h2>... Loading wheel ...</h2></tr> }
                     </tbody>
                 </table>
             </div>
