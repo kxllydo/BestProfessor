@@ -374,7 +374,7 @@ const SelectProfessor = ({ dataSet, courses }) => {
             
             let topProfsForCourse = dataSet[i + 2].filter(professor => professor.courses.includes(courses[i].course));
             topProfsForCourse.sort(professorSortFunction);
-            tempCoursesTopProfs[courses[i].course] = topProfsForCourse;
+            tempCoursesTopProfs[courses[i].course] = topProfsForCourse.slice(0, 5);
         }
 
         setCoursesTopProfs(tempCoursesTopProfs);
