@@ -27,7 +27,6 @@ function capitalize(str) {
 
 const Form = () => { 
     const [canInteract, setCanInteract] = useState(true);
-
     const [university, setUniversity] = useState("");   // Base64 encoded string of university ID
     const [profByDept, setProfByDept] = useState([]);   //
     const [courses, setCourses] = useState([]);         // 
@@ -215,6 +214,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
             hasNextPage = teachersData.pageInfo.hasNextPage;
             cursor = hasNextPage ? teachersData.pageInfo.endCursor : null;
         }
+        console.log(professors);
         setProfs(professors);
     }
 
@@ -242,18 +242,23 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
     };
 
     const getProfessorCourses = async () => {
-        const unique = new Set()
+        // const unique = new Set()
         const profByDept = [];
+
+        //for each professor
         for (let i = 0; i < profs.length; i++){
+            const unique = new Set()
+
             let profId = profs[i];
             let tempCourse = [];
+            // console.log(profId);
 
+            //gets information about that professor
             const query = `query TeacherRatingsPageQuery($id: ID!) { node(id: $id) { __typename ... on Teacher { id firstName lastName departmentId courseCodes {courseName} avgRating } } } `; 
             const variables = {id:profId};
             const response = await fetch (apiUrl, parameter(query, variables));
             const data = await response.json();
             const node = data.data.node;
-
             const courseCodes = node.courseCodes;
             courseCodes.forEach(course => {
             if (!unique.has(course.courseName)){
@@ -262,7 +267,8 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
                 }
             })
 
-            if (node && node.avgRating != 0 && pressed){
+
+            if (node.avgRating != 0 && pressed && tempCourse.length != 0){
                 let fullName = `${node.firstName} ${node.lastName}`
                 let id = node.id
                 let rating = node.avgRating
@@ -272,6 +278,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
             }
         }
 
+        console.log(profByDept)
         addProfs(profByDept);
     }
 
