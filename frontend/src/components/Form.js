@@ -21,10 +21,14 @@ const parameter = (query, variables) => {
     };
 };
 
-const Form = () => {
+function capitalize(str) {
+    return str.replace(/\b\w/g, char => char.toUpperCase());
+}
+
+const Form = () => { 
     const [canInteract, setCanInteract] = useState(true);
 
-    const [university, setUniversity] = useState("");   // university object
+    const [university, setUniversity] = useState("");   // Base64 encoded string of university ID
     const [profByDept, setProfByDept] = useState([]);   //
     const [courses, setCourses] = useState([]);         // 
 
@@ -41,6 +45,11 @@ const Form = () => {
         setProfByDept((prevProfs) => [...prevProfs, profs]);
     }
 
+    const deleteProfByDept = (index) => {
+        const updatedProfs = profByDept.filter((prof, i) => i != index);
+        setProfByDept(updatedProfs);
+    }
+
     return (
         <div id="form-container">
             <SelectUniversity 
@@ -49,13 +58,6 @@ const Form = () => {
                 setUniversity = {setUniversity}/>
             
             {university &&
-                <SelectCourse2
-                    canInteract = {canInteract}
-                    setCanInteract = {setCanInteract}
-                    university = {university.name}/>
-            }
-
-            {/* {university &&
                 <SelectCourse
                     canInteract = {canInteract}
                     setCanInteract = {setCanInteract}
@@ -64,12 +66,12 @@ const Form = () => {
                     add = {addCourse} 
                     deleteCourse = {deleteCourse}
                     id = {university}
-                    addProfs = {addProfByDept}/>
-            } */}
+                    addProfs = {addProfByDept}
+                    delProfs = {deleteProfByDept}/>
+            }
 
             {university && courses.length > 0 &&
                 <SelectProfessor 
-                    university = {university} 
                     courses = {courses} 
                     dataSet = {profByDept}/>
             }
@@ -78,20 +80,15 @@ const Form = () => {
 }
 
 const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
-    const [universityInputValue, setUniversityInputValue] = useState("");   // Value of input box, changes on input change
-    const [options, setOptions] = useState([]);                             // Array of university name autocompletes
-    const [finalizedOption, setFinalizedOption] = useState(false);          // Boolean for if university option was chosen
-
-    const handleUnivInputChange = (event) => {
-        event.preventDefault();
-        setUniversityInputValue(event.target.value);
-    }
+    const [_university, _setUniversity] = useState("");             // Value of input box, changes on input change
+    const [options, setOptions] = useState([]);                     // Array of university name autocompletes
+    const [finalizedOption, setFinalizedOption] = useState(false);  // Boolean for if university option was chosen
 
     const getUniversities = async(event) => {
         event.preventDefault();
 
         const query = `query SchoolSearchResultsPageQuery($query: SchoolSearchQuery!) { search: newSearch { schools(query: $query) { edges { node { id name } } } } } `;
-        const variables = {query: {text: universityInputValue}};
+        const variables = {query: {text: _university}};
 
         try {
             setCanInteract(false);
@@ -116,135 +113,43 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
         const index = event.target.id;
         const chosen = options[index];
 
-        setUniversityInputValue(chosen.name);
+        _setUniversity(chosen.name);
         setFinalizedOption(true);
-        setUniversity(chosen);
+        setUniversity(chosen.id);
         setOptions([]);
     }
 
     return (
         <div className = "general-container">
-            <h1>Select University</h1>
+            <h1>
+                {!finalizedOption && "Select University" || "University Name: " + _university}
+            </h1>
 
-            {finalizedOption &&
-                <div>{universityInputValue}</div>
-            ||
-                <>
+            {!finalizedOption &&
+                (<>
                     <div className = "text-input" id = "select-university">
-                        <label htmlFor = "school">University Name: </label>
-                        <input type = "text" onChange = {handleUnivInputChange} disabled = {!canInteract} />
+                        <label htmlFor = "school">University Name:</label>
+                        <input type = "text" onChange = {event => _setUniversity(event.target.value)} disabled = {!canInteract}/>
                         <button className = "btn" type = "submit" onClick = {getUniversities} disabled = {!canInteract}>Search</button>
                     </div>
-
+                    
                     <div className = "choices" id = "univ-choices">
                         {
                             options.map((option, index) => (
                                 <div key = {index} className = "text-input bubble">
-                                    <input type = "radio" id = {index} value = {option.name} name = "univ-name" onClick = {chooseUniversity} />
-                                    <label htmlFor = {option.name}>{option.name}</label>                                    
+                                    <input type = "radio" id = {index} value = {option.name} name = "univ-name" onClick = {chooseUniversity}></input>
+                                    <label htmlFor = {option.name}>{option.name}</label>
                                 </div>
                             ))
                         }
                     </div>
-                </>
+                </>)
             }
         </div>
     )
 }
 
-const Course = ({index, name, deleteFunction}) => {
-    const onDelete = (event) =>{
-        event.preventDefault();
-        deleteFunction();
-    }
-
-    return (
-        <div id = {`course${index}`} className = "bubble">
-            <p style={{margin:"0px"}}>{name}</p>
-            <button onClick={onDelete} className="remove-btn">x</button>
-        </div>
-    )
-}
-
-const SelectCourse2 = ({ canInteract, setCanInteract, university }) => {
-    const [departments, setDepartments] = useState([]);
-    const [department, setDepartment] = useState([]);
-    const [coursesInDepartment, setCoursesInDepartment] = useState([]);
-
-    const getDepartments = async () => {
-        const query = `
-            query DepartmentsQuery($query: SchoolSearchQuery!) {
-                search: newSearch {
-                    schools(query: $query) {
-                        edges {
-                            node {
-                                departments {
-                                    id
-                                    name
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        `;
-        const variables = {query: {text: university}};
-
-        setCanInteract(false);
-        const response = await fetch(apiUrl, parameter(query, variables));
-        const data = await response.json();
-
-        setDepartments(data.data.search.schools.edges[0].node.departments);
-        setCanInteract(true);
-    }
-
-    const handleSelectDepartment = (event) => {
-        const index = event.target.options[event.target.selectedIndex].getAttribute("value");
-        setDepartment(departments[index]);
-    }
-
-    const getCoursesInDepartment = () => {
-
-    }
-
-    useEffect(() => {
-        getDepartments();
-    }, [university]);
-
-    useEffect(() => {
-        getCoursesInDepartment();
-    }, [department]);
-
-    return (
-        <div className = "general-container">
-            <h1>Select Your Courses</h1>
-
-            <div className = "text-input">
-                <select id = "dept1" name = "depts" onChange = {handleSelectDepartment} defaultValue = "" style = {{borderRadius: "12px"}} disabled = {!canInteract}>
-                    <option value = "" disabled>Department</option>
-                    {
-                        departments.map((dept, index) => (
-                            <option key = {index} value = {dept.id}>{dept.name}</option>
-                        ))
-                    }
-                </select>
-
-                <select id = "courses" onChange = {() => {}} defaultValue = "" style = {{borderRadius: "12px"}} disabled = {!canInteract}>
-                    <option value = "" disabled>Courses</option>
-                    {/* TODO: map courses */}
-                </select>
-
-                <button id = "add-btn" onClick = {() => {}} disabled = {!canInteract}>+</button>
-            </div>
-
-            <div className = "options" style = {{margin: "2.5% 25% 0 25%"}}>
-                {/* TODO: map courses */}
-            </div>
-        </div>
-    );
-}
-
-const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse, set, select, id, loaded, addProfs}) => {
+const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs, delProfs}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState({});
@@ -253,8 +158,6 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
     const [profs, setProfs] = useState([]);
     const [showBtn, setShowBtn] = useState(false);
     const [pressed, setPressed] = useState(false);
-
-    const capitalize = str => str.replace(/\b\w/g, char => char.toUpperCase());
 
     const setCourse = (event) => {
         const index = event.target.options[event.target.selectedIndex].getAttribute('id')
@@ -268,10 +171,8 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
 
     const addCourse = (event) => {
         event.preventDefault();
-        if (Object.keys(course).length > 0) {
-            add(course);
-            setPressed(true);
-        }
+        add(course);
+        setPressed(true);
     }
 
     const getDepts = async() => {
@@ -290,12 +191,9 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
         }
         setDepts(departments);
     }
+
    
     const getProfessorByDept = async(deptId) => {
-        if (!deptId) // why is this running infinitely without a deptId???
-            return;
-
-        setCanInteract(false);
         let professors = [];
         let hasNextPage = true;
         let cursor = null;
@@ -309,7 +207,6 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
             const data = await response.json();
     
             if (data.errors) {
-                setCanInteract(true);
                 throw new Error(`GraphQL query failed with errors: ${JSON.stringify(data.errors)}`);
             }
     
@@ -342,7 +239,6 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
             })
         }
         setClasses(courses);
-        setCanInteract(true);
     };
 
     const getProfessorCourses = async () => {
@@ -410,50 +306,110 @@ const SelectCourse = ({ canInteract, setCanInteract, courses, add, deleteCourse,
             <h1>Select Your Courses</h1>
                 <div>
                      <div className="text-input">
-                        <select disabled = {!canInteract} id="dept1" name="depts" onChange={setDepartment} defaultValue = "" style={{borderRadius: '12px'}}>
+                        <select id="dept1" name="depts" onChange={setDepartment} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Department</option>
                             {depts.map((dept, index) => (
                             <option id={index} value={dept.value}>{dept.value}</option>
                             ))}
                         </select>
-                        <select disabled = {!canInteract} id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
+                        <select id="courses"  onChange={setCourse} defaultValue = "" style={{borderRadius: '12px'}}>
                             <option value="" disabled>Course</option>
                             {classes.map((clas, index) => (
                                 <option id={index} value={clas.course}>{clas.course}</option>
                             ))}
                         </select>
 
-                        <button disabled = {!canInteract} id="add-btn" onClick={addCourse}>+</button>
+                        <button id="add-btn" onClick={addCourse}>+</button>
                     </div>
 
                     <div className="choices" style={{ margin: "2.5% 25% 0 25%" }}>
                         {courses.map((course, index) => (
-                        <Course key={index} index={index} name={course.course} deleteFunction={() => deleteCourse(index)} />
+                        <Course key={index} index={index} name={course.course} deleteFunction={() => {deleteCourse(index); delProfs(index + 2);}} />
                         ))}
                     </div>
+                    {showBtn && (<button class="btn" id = "course-submit-btn" style={{marginTop: '2%', paddingTop: '6px', paddingBottom: '6px'}}>Submit</button>)}
                 </div>
         </div>
     );
 }
+    
+const Course = ({index, name, deleteFunction}) => {
+    const onDelete = (event) =>{
+        event.preventDefault();
+        deleteFunction();
+    }
+
+    return (
+    <div id = {`course${index}`} className = "bubble">
+        <p style={{margin:"0px"}}>{name}</p>
+        <button onClick={onDelete} className="remove-btn">x</button>
+    </div>
+    )
+}
 
 const SelectProfessor = ({ dataSet, courses }) => {
+    const [coursesTopProfs, setCoursesTopProfs] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
+
+    const professorSortFunction = (self, other) => {
+        if (self.rating > other.rating)
+            return -1;
+        else if (self.rating < other.rating)
+            return 1;
+        return 0;
+    }
 
     useEffect(() => {
-        console.log("Course Array");
-        console.log(courses);
-        console.log("Data Set Array");
-        console.log(dataSet);
-    }, [courses]);
+        if (dataSet.length < 3)
+            return;
+
+        setIsLoading(true);
+        const tempCoursesTopProfs = {};
+
+        for (let i = 0; i < courses.length; i++) {
+            console.log(dataSet[i + 2]);
+            
+            let topProfsForCourse = dataSet[i + 2].filter(professor => professor.courses.includes(courses[i].course));
+            topProfsForCourse.sort(professorSortFunction);
+            tempCoursesTopProfs[courses[i].course] = topProfsForCourse;
+        }
+
+        setCoursesTopProfs(tempCoursesTopProfs);
+        setIsLoading(false);
+    }, [dataSet]);
 
     return (
         <div className = "general-container">
             <h1>Select Your Professor</h1>
 
-            {
-                courses.map((a, i) => {
-                    <div>{a}</div>
-                })
-            }
+            <div className = "text-input">
+                <table>
+                    <tbody>
+                        {!isLoading && Object.keys(coursesTopProfs).length > 0 &&
+                            Object.keys(coursesTopProfs).map((course, index) => (
+                                <tr key = {index}>
+                                    <td className = "course-col">{course}</td>
+                                    <td className = "profs-col">
+                                        {
+                                            coursesTopProfs[course].map((prof, index2) => (
+                                                <span key = {index2} className = "bubble">
+                                                    <p style = {{margin: "0px"}}>
+                                                        <a href = {"https://www.ratemyprofessors.com/professor/" + atob(prof.id).split("-")[1]} target = "_blank">
+                                                            {prof.name}
+                                                        </a>
+                                                    </p>
+                                                </span>
+                                            ))
+                                        }
+                                    </td>
+                                </tr>
+                            ))
+                        ||
+                            <div> ... Loading Wheel ... </div>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }
