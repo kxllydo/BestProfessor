@@ -367,8 +367,10 @@ const SelectProfessor = ({ dataSet, courses }) => {
         const tempCoursesTopProfs = {};
 
         for (let i = 0; i < courses.length; i++) {
-            console.log(courses[i].course);
-            console.log(dataSet[i + 2]);
+            if (!dataSet[i + 2]) {
+                console.log(courses[i].course + " is undefined...? (" + i + ")");
+                continue;
+            }
             
             let topProfsForCourse = dataSet[i + 2].filter(professor => professor.courses.includes(courses[i].course));
             topProfsForCourse.sort(professorSortFunction);
