@@ -359,6 +359,7 @@ const Course = ({index, name, deleteFunction}) => {
 
 const SelectProfessor = ({ dataSet, courses }) => {
     const [coursesTopProfs, setCoursesTopProfs] = useState({});
+    const [isLoading, setIsLoading] = useState(false);
 
     const professorSortFunction = (self, other) => {
         if (self.rating > other.rating)
@@ -372,15 +373,20 @@ const SelectProfessor = ({ dataSet, courses }) => {
         if (dataSet.length < 3)
             return;
 
+        setIsLoading(true);
         const tempCoursesTopProfs = {};
 
         for (let i = 0; i < courses.length; i++) {
+            console.log("COURSE: " + courses[i].course);
+            console.log("DATASET: ");
+            console.log(dataSet[i + 2]);
             let topProfsForCourse = dataSet[i + 2].filter(professor => professor.courses.includes(courses[i].course));
             topProfsForCourse.sort(professorSortFunction);
             tempCoursesTopProfs[courses[i].course] = topProfsForCourse;
         }
 
         setCoursesTopProfs(tempCoursesTopProfs);
+        setIsLoading(false);
     }, [dataSet]);
 
     return (
@@ -390,14 +396,14 @@ const SelectProfessor = ({ dataSet, courses }) => {
             <div className = "text-input">
                 <table>
                     <tbody>
-                        {Object.keys(coursesTopProfs).length > 0 &&
+                        {!isLoading && Object.keys(coursesTopProfs).length > 0 &&
                             Object.keys(coursesTopProfs).map((course, index) => (
                                 <tr key = {index}>
                                     <td className = "course-col">{course}</td>
                                     <td className = "profs-col">
                                         {
                                             coursesTopProfs[course].map((prof, index2) => (
-                                                <span className = "bubble">
+                                                <span key = {index2} className = "bubble">
                                                     <p style = {{margin: "0px"}}>
                                                         <a href = {"https://www.ratemyprofessors.com/professor/" + atob(prof.id).split("-")[1]} target = "_blank">
                                                             {prof.name}
