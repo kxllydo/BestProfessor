@@ -386,7 +386,7 @@ const SelectProfessor = ({ dataSet, courses }) => {
     }, [dataSet]);
 
     return (
-        <div className = "general-container">
+        <div className = "general-container select-prof">
             <h1>Select Your Professor</h1>
 
             <div className = "text-input">
@@ -400,11 +400,9 @@ const SelectProfessor = ({ dataSet, courses }) => {
                                         {
                                             coursesTopProfs[course].map((prof, index2) => (
                                                 <span key = {index2} className = "bubble">
-                                                    <p style = {{margin: "0px"}}>
-                                                        <a href = {"https://www.ratemyprofessors.com/professor/" + atob(prof.id).split("-")[1]} target = "_blank">
-                                                            {prof.name}
-                                                        </a>
-                                                    </p>
+                                                    <a href = {"https://www.ratemyprofessors.com/professor/" + atob(prof.id).split("-")[1]} target = "_blank">
+                                                        {prof.name}
+                                                    </a>
                                                 </span>
                                             ))
                                         }
