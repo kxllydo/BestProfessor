@@ -148,7 +148,7 @@ const SelectUniversity = ({ canInteract, setCanInteract, setUniversity }) => {
     )
 }
 
-const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addProfs, delProfs}) => {
+const SelectCourse = ({courses, add, deleteCourse, id, loaded, addProfs, delProfs}) => {
     const [depts, setDepts] = useState([]);
     const [choseDept, setChoseDept] = useState(false);
     const [dept, setDept] = useState({});
@@ -296,7 +296,7 @@ const SelectCourse = ({courses, add, deleteCourse, set, select, id, loaded, addP
 
       useEffect(() => {
         getCourses()
-      }, [profs]);
+      }, [setDepartment]);
 
 
       useEffect(() => {
