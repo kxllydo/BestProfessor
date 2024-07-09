@@ -296,7 +296,7 @@ const SelectCourse = ({courses, add, deleteCourse, id, loaded, addProfs, delProf
 
       useEffect(() => {
         getCourses()
-      }, [profs]);
+      }, [setDepartment]);
 
 
       useEffect(() => {
